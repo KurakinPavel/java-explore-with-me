@@ -1,14 +1,21 @@
 package ru.practicum.statsserverdto.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class StatsDtoOut {
     protected String app;
     protected String uri;
-    protected int hits;
+    protected Long hits;
+
+    public StatsDtoOut(String app, String uri, Long hits) {
+        this.app = app;
+        this.uri = uri;
+        this.hits = hits;
+    }
+
+    public StatsDtoOut() {
+    }
 }

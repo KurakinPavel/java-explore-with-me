@@ -11,7 +11,7 @@ import javax.validation.constraints.NotBlank;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HitDtoIn {
+public class HitDto {
     protected Integer id;
     @NotBlank
     protected String app;
@@ -19,5 +19,6 @@ public class HitDtoIn {
     protected String uri;
     @NotBlank
     protected String ip;
+    @NotBlank
     protected String timestamp;
 }

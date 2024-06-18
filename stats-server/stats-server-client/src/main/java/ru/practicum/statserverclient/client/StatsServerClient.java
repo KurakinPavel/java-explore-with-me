@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import ru.practicum.statsserverdto.dto.HitDtoIn;
+import ru.practicum.statsserverdto.dto.HitDto;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -26,8 +26,8 @@ public class StatsServerClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> postHit(HitDtoIn hitDtoIn) {
-        return post("/hit", hitDtoIn);
+    public ResponseEntity<Object> postHit(HitDto hitDto) {
+        return post("/hit", hitDto);
     }
 
     public ResponseEntity<Object> getHitsStatistics(String start, String end, List<String> uris, Boolean unique) {

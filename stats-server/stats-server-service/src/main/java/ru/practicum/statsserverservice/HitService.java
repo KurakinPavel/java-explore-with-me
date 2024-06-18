@@ -3,6 +3,7 @@ package ru.practicum.statsserverservice;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.statsserverdto.dto.HitDto;
 import ru.practicum.statsserverdto.dto.MomentFormatter;
 import ru.practicum.statsserverdto.dto.StatsDtoOut;
@@ -19,11 +20,13 @@ import java.util.List;
 public class HitService {
     private final HitRepository hitRepository;
 
+    @Transactional
     public HitDto add(HitDto hitDto) {
         log.info("Сохранена история обращения к app {}", hitDto.getApp());
         return HitMapper.toHitDto(hitRepository.save(HitMapper.toHit(hitDto)));
     }
 
+    @Transactional(readOnly = true)
     public List<StatsDtoOut> getHitStats(String start, String end, String[] uris, Boolean unique) {
         LocalDateTime startTime = LocalDateTime.parse(URLDecoder.decode(start, StandardCharsets.UTF_8), MomentFormatter.DATE_TIME_FORMAT);
         LocalDateTime endTime = LocalDateTime.parse(URLDecoder.decode(end, StandardCharsets.UTF_8), MomentFormatter.DATE_TIME_FORMAT);
@@ -44,5 +47,4 @@ public class HitService {
             }
         }
     }
-
 }

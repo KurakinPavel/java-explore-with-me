@@ -8,6 +8,8 @@ import ru.practicum.statsserverdto.dto.HitDto;
 import ru.practicum.statsserverdto.dto.StatsDtoOut;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @RestController
@@ -23,8 +25,8 @@ public class HitController {
     }
 
     @GetMapping("/stats")
-    public List<StatsDtoOut> getHitStats(@RequestParam String start,
-                                          @RequestParam String end,
+    public List<StatsDtoOut> getHitStats(@RequestParam @NotBlank @Size(min = 19) String start,
+                                          @RequestParam @NotBlank @Size(min = 19) String end,
                                           @RequestParam (required = false) String[] uris,
                                           @RequestParam (defaultValue = "false") Boolean unique) {
         return hitService.getHitStats(start, end, uris, unique);

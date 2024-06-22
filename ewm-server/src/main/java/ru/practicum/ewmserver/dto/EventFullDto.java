@@ -9,7 +9,7 @@ public class EventFullDto {
     protected String description;
     protected String eventDate;
     protected UserShortDto initiator;
-    protected Location location;
+    protected LocationDto location;
     protected Boolean paid;
     protected int participantLimit;
     protected String publishedOn;

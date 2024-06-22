@@ -13,7 +13,7 @@ public class NewEventDto {
     protected String description;
     @NotBlank
     protected String eventDate;
-    protected Location location;
+    protected LocationDto location;
     protected Boolean paid;
     protected int participantLimit;
     protected Boolean requestModeration;

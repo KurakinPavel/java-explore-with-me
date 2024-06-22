@@ -9,7 +9,7 @@ public class UpdateEventUserRequest {
     @Size(min = 20, max = 7000)
     protected String description;
     protected String eventDate;
-    protected Location location;
+    protected LocationDto location;
     protected Boolean paid;
     protected Integer participantLimit;
     protected Boolean requestModeration;

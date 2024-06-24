@@ -23,8 +23,8 @@ public class User {
     @Column(name = "USER_ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
-    @Column(name = "NAME", nullable = false)
+    @Column(nullable = false)
     protected String name;
-    @Column(name = "EMAIL", nullable = false)
+    @Column(nullable = false)
     protected String email;
 }

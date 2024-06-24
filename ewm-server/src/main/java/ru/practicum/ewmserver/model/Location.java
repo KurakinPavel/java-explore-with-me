@@ -13,16 +13,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "CATEGORIES", schema = "PUBLIC")
+@Table(name = "LOCATIONS", schema = "PUBLIC")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category {
+public class Location {
     @Id
-    @Column(name = "CATEGORY_ID", nullable = false)
+    @Column(name = "LOCATION_ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
     @Column(nullable = false)
-    protected String name;
+    protected Float lat;
+    @Column(nullable = false)
+    protected Float lon;
 }

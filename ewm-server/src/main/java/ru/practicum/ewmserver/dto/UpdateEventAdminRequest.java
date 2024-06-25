@@ -1,5 +1,7 @@
 package ru.practicum.ewmserver.dto;
 
+import ru.practicum.ewmserver.model.Location;
+
 import javax.validation.constraints.Size;
 
 public class UpdateEventAdminRequest {
@@ -9,7 +11,7 @@ public class UpdateEventAdminRequest {
     @Size(min = 20, max = 7000)
     protected String description;
     protected String eventDate;
-    protected LocationDto location;
+    protected Location location;
     protected Boolean paid;
     protected Integer participantLimit;
     protected Boolean requestModeration;

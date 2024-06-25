@@ -9,6 +9,7 @@ import org.hibernate.annotations.Type;
 import ru.practicum.ewmserver.enums.EventState;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -49,15 +50,14 @@ public class Event {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "INITIATOR_ID")
     protected User initiator;
-    @OneToOne
-    @JoinColumn(name = "LOCATION_ID")
+    @Embedded
     protected Location location;
     @Column(nullable = false)
     @Type(type = "org.hibernate.type.NumericBooleanType")
     protected Boolean paid;
     @Column(name = "PARTICIPANT_LIMIT", nullable = false)
     protected int participantLimit;
-    @Column(name = "PUBLISHED_ON", nullable = false)
+    @Column(name = "PUBLISHED_ON", nullable = true)
     protected LocalDateTime publishedOn;
     @Column(nullable = false)
     @Type(type = "org.hibernate.type.NumericBooleanType")

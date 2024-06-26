@@ -5,8 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.CategoryDto;
+import ru.practicum.ewmserver.dto.EventFullDto;
+import ru.practicum.ewmserver.dto.UpdateEventRequest;
 import ru.practicum.ewmserver.dto.UserDto;
+import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
+import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
 
 @Slf4j
@@ -15,6 +19,7 @@ import ru.practicum.ewmserver.services.entityservices.UserService;
 public class AdminService {
     private final UserService userService;
     private final CategoryService categoryService;
+    private final EventService eventService;
 
     @Transactional
     public UserDto save(UserDto userDto) {
@@ -24,5 +29,19 @@ public class AdminService {
     @Transactional
     public CategoryDto save(CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
+    }
+
+    @Transactional
+    public CategoryDto update(int catId, CategoryDto categoryDto) {
+        return categoryService.update(catId, categoryDto);
+    }
+
+    @Transactional
+    public EventFullDto update(int eventId, UpdateEventRequest updateEventRequest) {
+        Category category = null;
+        if (updateEventRequest.getCategory() != null) {
+            category = categoryService.getCategory(updateEventRequest.getCategory());
+        }
+        return eventService.updateByAdmin(eventId, updateEventRequest, category);
     }
 }

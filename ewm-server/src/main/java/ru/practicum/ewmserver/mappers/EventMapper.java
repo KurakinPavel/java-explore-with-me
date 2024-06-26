@@ -26,7 +26,7 @@ public class EventMapper {
                 newEventDto.getParticipantLimit() != 0 ? newEventDto.getParticipantLimit() : 0,
                 LocalDateTime.now(),
                 newEventDto.getRequestModeration() != null ? newEventDto.getRequestModeration() : null,
-                EventState.PUBLISHED,
+                EventState.PENDING,
                 newEventDto.getTitle() != null ? newEventDto.getTitle() : ""
         );
     }

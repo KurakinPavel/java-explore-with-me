@@ -23,6 +23,15 @@ public class CategoryService {
         return CategoryMapper.toCategoryDto(categoryRepository.save(CategoryMapper.toCategory(categoryDto)));
     }
 
+    public CategoryDto update(int catId, CategoryDto categoryDto) {
+        Category updatingCategory = getCategory(catId);
+        if ((categoryDto.getName() == null) || (categoryDto.getName().isBlank())) {
+            throw new CategoryValidationException("Переданы некорректные данные для создания категории");
+        }
+        updatingCategory.setName(categoryDto.getName());
+        return CategoryMapper.toCategoryDto(categoryRepository.save(CategoryMapper.toCategory(categoryDto)));
+    }
+
     public Category getCategory(int categoryId) {
         return categoryRepository.getReferenceById(categoryId);
     }

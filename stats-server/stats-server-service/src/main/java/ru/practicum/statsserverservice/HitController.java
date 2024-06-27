@@ -3,6 +3,7 @@ package ru.practicum.statsserverservice;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.statsserverdto.dto.HitDto;
@@ -20,6 +21,7 @@ public class HitController {
     private final HitService hitService;
 
     @PostMapping("/hit")
+    @ResponseStatus(HttpStatus.CREATED)
     public HitDto add(@RequestBody @Valid HitDto hitDto) {
         return hitService.add(hitDto);
     }
@@ -29,6 +31,7 @@ public class HitController {
                                          @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
                                          @RequestParam (required = false) String[] uris,
                                          @RequestParam (defaultValue = "false") Boolean unique) {
+        log.info("Есть запрос!");
         return hitService.getHitStats(start, end, uris, unique);
     }
 }

@@ -1,6 +1,7 @@
 package ru.practicum.ewmserver.mappers;
 
 import ru.practicum.ewmserver.dto.EventFullDto;
+import ru.practicum.ewmserver.dto.EventShortDto;
 import ru.practicum.ewmserver.dto.MomentFormatter;
 import ru.practicum.ewmserver.dto.NewEventDto;
 import ru.practicum.ewmserver.enums.EventState;
@@ -49,6 +50,20 @@ public class EventMapper {
                 event.getState().toString(),
                 event.getTitle(),
                 0
+        );
+    }
+
+    public static EventShortDto toEventShortDto(Event event) {
+        return new EventShortDto(
+                event.getId(),
+                event.getAnnotation(),
+                CategoryMapper.toCategoryDto(event.getCategory()),
+                0,
+                event.getEventDate().format(MomentFormatter.DATE_TIME_FORMAT),
+                UserMapper.toUserShortDto(event.getInitiator()),
+                event.getPaid(),
+                event.getTitle(),
+                999
         );
     }
 }

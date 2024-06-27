@@ -9,6 +9,7 @@ import ru.practicum.ewmserver.model.Location;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
 @Getter
@@ -30,6 +31,7 @@ public class NewEventDto {
     @NotNull
     protected Location location;
     protected Boolean paid;
+    @PositiveOrZero
     protected int participantLimit;
     protected Boolean requestModeration;
     @NotBlank

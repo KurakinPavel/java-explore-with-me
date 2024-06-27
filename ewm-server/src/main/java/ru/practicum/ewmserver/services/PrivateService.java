@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.EventFullDto;
+import ru.practicum.ewmserver.dto.EventShortDto;
 import ru.practicum.ewmserver.dto.NewEventDto;
 import ru.practicum.ewmserver.dto.ParticipationRequestDto;
 import ru.practicum.ewmserver.dto.UpdateEventRequest;
@@ -15,6 +16,8 @@ import ru.practicum.ewmserver.services.entityservices.CategoryService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.ParticipationRequestService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -52,4 +55,11 @@ public class PrivateService {
     public ParticipationRequestDto cancel(int userId, int requestId) {
         return participationRequestService.cancel(userId, requestId);
     }
+
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getUserEvents(int userId, int from, int size) {
+        User user = userService.getUser(userId);
+        return eventService.getUserEvents(userId, from, size);
+    }
+
 }

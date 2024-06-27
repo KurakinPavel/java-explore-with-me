@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.ewmserver.model.Location;
 
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
 @Getter
@@ -23,6 +24,7 @@ public class UpdateEventRequest {
     protected String eventDate;
     protected Location location;
     protected Boolean paid;
+    @PositiveOrZero
     protected Integer participantLimit;
     protected Boolean requestModeration;
     protected String stateAction;

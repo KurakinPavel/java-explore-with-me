@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewmserver.dto.EventFullDto;
 import ru.practicum.ewmserver.dto.EventShortDto;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
-import ru.practicum.ewmserver.searchparams.SearchParameters;
+import ru.practicum.ewmserver.searchparams.SearchParametersUsersPublic;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.ParticipationRequestService;
@@ -25,10 +26,15 @@ public class PublicService {
     private final ParticipationRequestService participationRequestService;
 
     @Transactional(readOnly = true)
-    public List<EventShortDto> getEventsWithFiltering(SearchParameters searchParameters,
+    public List<EventShortDto> getEventsWithFiltering(SearchParametersUsersPublic searchParametersUsersPublic,
                                                       PresentationParameters presentationParameters,
                                                       HttpServletRequest servletRequest) {
-        return eventService.getEventsWithFiltering(searchParameters, presentationParameters, servletRequest);
+        return eventService.getEventsWithFiltering(searchParametersUsersPublic, presentationParameters, servletRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public EventFullDto getEventForPublic(int id, HttpServletRequest servletRequest) {
+        return eventService.getEventForPublic(id, servletRequest);
     }
 
 }

@@ -9,9 +9,14 @@ import ru.practicum.ewmserver.dto.EventFullDto;
 import ru.practicum.ewmserver.dto.UpdateEventRequest;
 import ru.practicum.ewmserver.dto.UserDto;
 import ru.practicum.ewmserver.model.Category;
+import ru.practicum.ewmserver.searchparams.PresentationParameters;
+import ru.practicum.ewmserver.searchparams.SearchParametersAdmin;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
+
+import javax.servlet.ServletRequest;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -43,5 +48,11 @@ public class AdminService {
             category = categoryService.getCategory(updateEventRequest.getCategory());
         }
         return eventService.updateByAdmin(eventId, updateEventRequest, category);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventFullDto> getEventsWithFilteringForAdmin(SearchParametersAdmin searchParametersAdmin,
+                                                             PresentationParameters presentationParameters) {
+        return eventService.getEventsWithFilteringForAdmin(searchParametersAdmin, presentationParameters);
     }
 }

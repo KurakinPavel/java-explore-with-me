@@ -53,6 +53,20 @@ public class EventMapper {
         );
     }
 
+    public static EventShortDto fromFullToShortEventDTO(EventFullDto eventFullDto) {
+        return new EventShortDto(
+                eventFullDto.getId(),
+                eventFullDto.getAnnotation(),
+                eventFullDto.getCategory(),
+                eventFullDto.getConfirmedRequests(),
+                eventFullDto.getEventDate(),
+                eventFullDto.getInitiator(),
+                eventFullDto.getPaid(),
+                eventFullDto.getTitle(),
+                eventFullDto.getViews()
+        );
+    }
+
     public static EventShortDto toEventShortDto(Event event) {
         return new EventShortDto(
                 event.getId(),
@@ -63,7 +77,7 @@ public class EventMapper {
                 UserMapper.toUserShortDto(event.getInitiator()),
                 event.getPaid(),
                 event.getTitle(),
-                999
+                0
         );
     }
 }

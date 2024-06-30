@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.ewmserver.enums.EventState;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,11 +13,10 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SearchParameters {
-    protected String text;
+public class SearchParametersAdmin {
+    protected List<Integer> users;
+    protected List<EventState> states;
     protected List<Integer> categories;
-    protected Boolean paid;
     protected LocalDateTime rangeStart;
     protected LocalDateTime rangeEnd;
-    protected Boolean onlyAvailable;
 }

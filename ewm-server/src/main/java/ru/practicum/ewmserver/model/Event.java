@@ -57,7 +57,7 @@ public class Event {
     protected Boolean paid;
     @Column(name = "PARTICIPANT_LIMIT", nullable = false)
     protected int participantLimit;
-    @Column(name = "PUBLISHED_ON", nullable = true)
+    @Column(name = "PUBLISHED_ON")
     protected LocalDateTime publishedOn;
     @Column(nullable = false)
     @Type(type = "org.hibernate.type.NumericBooleanType")

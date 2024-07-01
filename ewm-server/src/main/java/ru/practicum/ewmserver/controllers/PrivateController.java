@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewmserver.dto.EventFullDto;
+import ru.practicum.ewmserver.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.ewmserver.dto.EventRequestStatusUpdateResult;
 import ru.practicum.ewmserver.dto.EventShortDto;
 import ru.practicum.ewmserver.dto.NewEventDto;
 import ru.practicum.ewmserver.dto.ParticipationRequestDto;
@@ -51,13 +53,21 @@ public class PrivateController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto save(@PathVariable Integer userId,
                                         @RequestParam("eventId") Integer eventId) {
-        log.info("Request from controller for post ParticipationRequest: userId = {}, eventId = {}", userId, eventId);
+        log.info("Запрос от контроллера на создание запроса на участие в событии: userId = {}, eventId = {}", userId, eventId);
         return privateService.save(userId, eventId);
     }
 
+    @PatchMapping("/events/{eventId}/requests")
+    public EventRequestStatusUpdateResult updateRequestsStatus(
+            @PathVariable @Positive Integer userId,
+            @PathVariable @Positive Integer eventId,
+            @RequestBody @Valid EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
+        return privateService.updateRequestsStatus(userId, eventId, eventRequestStatusUpdateRequest);
+    }
+
     @PatchMapping("/requests/{requestId}/cancel")
-    public ParticipationRequestDto cancel(@PathVariable Integer userId,
-                                          @PathVariable Integer requestId) {
+    public ParticipationRequestDto cancel(@PathVariable @Positive Integer userId,
+                                          @PathVariable @Positive Integer requestId) {
         return privateService.cancel(userId, requestId);
     }
 
@@ -67,4 +77,6 @@ public class PrivateController {
                                              @RequestParam(defaultValue = "10") @Positive Integer size) {
         return privateService.getUserEvents(userId, from, size);
     }
+
+
 }

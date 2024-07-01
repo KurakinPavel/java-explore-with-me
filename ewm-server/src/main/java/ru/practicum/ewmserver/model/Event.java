@@ -9,6 +9,7 @@ import org.hibernate.annotations.Type;
 import ru.practicum.ewmserver.enums.EventState;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -19,7 +20,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -57,6 +57,8 @@ public class Event {
     protected Boolean paid;
     @Column(name = "PARTICIPANT_LIMIT", nullable = false)
     protected int participantLimit;
+    @Column(name = "CONFIRMED_REQUESTS", nullable = false)
+    protected Integer confirmedRequests;
     @Column(name = "PUBLISHED_ON")
     protected LocalDateTime publishedOn;
     @Column(nullable = false)

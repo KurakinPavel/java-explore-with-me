@@ -24,14 +24,18 @@ import java.util.Map;
 public class ParticipationRequestService {
     private final ParticipationRequestRepository participationRequestRepository;
 
-    public ParticipationRequestDto save(User requester, Event event) {
+    public ParticipationRequestDto save(User requester, Event event, ParticipationRequestStatus participationRequestStatus) {
         ParticipationRequest participationRequest = new ParticipationRequest(
                 0,
                 LocalDateTime.now(),
                 event, requester,
-                ParticipationRequestStatus.PENDING
+                participationRequestStatus
         );
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
+    }
+
+    public void saveAll(List<ParticipationRequest> updatedParticipationRequests) {
+        participationRequestRepository.saveAll(updatedParticipationRequests);
     }
 
     public ParticipationRequestDto cancel(int userId, int requestId) {
@@ -43,6 +47,10 @@ public class ParticipationRequestService {
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(canceledParticipationRequest));
     }
 
+    public List<ParticipationRequest> getRequestByEventAndRequestIds(List<Integer> requestIds) {
+        return participationRequestRepository.findAllByIdIn(requestIds);
+    }
+
     public Map<Integer, Integer> countEventsConfirmedRequests(List<Integer> eventIds) {
         List<ConfirmedRequestsStats> statsForConfirmedRequests = participationRequestRepository.findStatsForRequests(ParticipationRequestStatus.CONFIRMED, eventIds);
         Map<Integer, Integer> eventsConfirmedRequests = new HashMap<>();
@@ -50,5 +58,9 @@ public class ParticipationRequestService {
             eventsConfirmedRequests.put(stats.getEventId(), Math.toIntExact(stats.getConfirmedRequests()));
         }
         return eventsConfirmedRequests;
+    }
+
+    public ParticipationRequest getRequestByEventAndRequester(int eventId, int requesterId) {
+        return participationRequestRepository.findOneByEvent_IdAndRequester_Id(eventId,requesterId);
     }
 }

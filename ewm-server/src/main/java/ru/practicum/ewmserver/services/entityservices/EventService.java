@@ -18,7 +18,8 @@ import ru.practicum.ewmserver.enums.AdminStateAction;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.enums.SortType;
 import ru.practicum.ewmserver.enums.UserStateAction;
-import ru.practicum.ewmserver.exceptions.custom.GetStatisticException;
+import ru.practicum.ewmserver.exceptions.custom.EventTimeValidationException;
+import ru.practicum.ewmserver.exceptions.custom.EventValidationException;
 import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
 import ru.practicum.ewmserver.mappers.EventMapper;
 import ru.practicum.ewmserver.model.Category;
@@ -33,7 +34,6 @@ import ru.practicum.statsserverdto.dto.HitDto;
 import ru.practicum.statsserverdto.dto.StartEndValidationException;
 import ru.practicum.statsserverdto.dto.StatsDtoOut;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -57,24 +57,37 @@ public class EventService {
         return EventMapper.toEventFullDto(eventRepository.save(EventMapper.toEvent(newEventDto, initiator, category)));
     }
 
+    public void save(Event event) {
+        eventRepository.save(event);
+    }
+
     public EventFullDto updateByAdmin(int eventId, UpdateEventRequest updateEventRequest, Category category) {
         Event updatingEvent = getEvent(eventId);
         if (updateEventRequest.getStateAction() != null) {
             AdminStateAction adminStateAction = AdminStateAction.from(updateEventRequest.getStateAction()).orElseThrow(() ->
                     new IllegalArgumentException("Unknown state: " + updateEventRequest.getStateAction()));
             if (adminStateAction.equals(AdminStateAction.PUBLISH_EVENT)) {
+                if (!updatingEvent.getState().equals(EventState.PENDING)) {
+                    throw new EventValidationException("Можно публиковать только события в ожидании публикации");
+                }
                 updatingEvent.setState(EventState.PUBLISHED);
             } else {
+                if (!updatingEvent.getState().equals(EventState.PENDING)) {
+                    throw new EventValidationException("Можно отклонить только события в ожидании публикации");
+                }
                 updatingEvent.setState(EventState.CANCELED);
             }
         }
-        return update(updatingEvent, updateEventRequest, category);
+        return update(updatingEvent, updateEventRequest, category, 1);
     }
 
     public EventFullDto updateByUser(int userId, int eventId, UpdateEventRequest updateEventRequest, Category category) {
         Event updatingEvent = getEvent(eventId);
         if (updatingEvent.getInitiator().getId() != userId) {
             throw new UserValidationException("Событие может редактировать только инициатор");
+        }
+        if (updatingEvent.getState().equals(EventState.PUBLISHED)) {
+            throw new EventValidationException("Нельзя изменить опубликованное событие");
         }
         if (updateEventRequest.getStateAction() != null) {
             UserStateAction userStateAction = UserStateAction.from(updateEventRequest.getStateAction()).orElseThrow(() ->
@@ -85,10 +98,10 @@ public class EventService {
                 updatingEvent.setState(EventState.CANCELED);
             }
         }
-        return update(updatingEvent, updateEventRequest, category);
+        return update(updatingEvent, updateEventRequest, category, 2);
     }
 
-    private EventFullDto update(Event updatingEvent, UpdateEventRequest updateEventRequest, Category category) {
+    private EventFullDto update(Event updatingEvent, UpdateEventRequest updateEventRequest, Category category, int timeLimit) {
         if (updateEventRequest.getAnnotation() != null) {
             updatingEvent.setAnnotation(updateEventRequest.getAnnotation());
         }
@@ -99,6 +112,9 @@ public class EventService {
             updatingEvent.setDescription(updateEventRequest.getDescription());
         }
         if (updateEventRequest.getEventDate() != null) {
+            if (LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT).isBefore(LocalDateTime.now().plusHours(timeLimit))) {
+                throw new EventTimeValidationException("Дата события не может быть раньше, чем через " + timeLimit + " ч. от текущего момента");
+            }
             updatingEvent.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT));
         }
         if (updateEventRequest.getLocation() != null) {
@@ -133,10 +149,11 @@ public class EventService {
     }
 
     private List<EventFullDto> addStatsToEventFullDtoInformation(List<EventFullDto> eventsFullDto) {
-        List<String> uris = new ArrayList<>();
+        List<String> urisInList = new ArrayList<>();
         for (EventFullDto event : eventsFullDto) {
-            uris.add("/events/" + event.getId());
+            urisInList.add("/events/" + event.getId());
         }
+        String[] uris = urisInList.toArray(new String[0]);
         Map<Integer, Integer> statistic = getHitsStatistic(uris);
         for (EventFullDto eventFullDto : eventsFullDto) {
             if (statistic.get(eventFullDto.getId()) != null) {
@@ -146,27 +163,25 @@ public class EventService {
         return eventsFullDto;
     }
 
-    private Map<Integer, Integer> getHitsStatistic(List<String> uris) {
+    private Map<Integer, Integer> getHitsStatistic(String[] uris) {
         String start = LocalDateTime.now().minusYears(100).format(MomentFormatter.DATE_TIME_FORMAT);
         String end = LocalDateTime.now().plusYears(100).format(MomentFormatter.DATE_TIME_FORMAT);
-        log.info("Передаю: {}, {}", start, end);
         ResponseEntity<Object> response = statsServerClient.getHitsStatistics(start, end, uris, true);
-        log.info("Статистику получил. Обрабатываю.");
-        log.info(String.valueOf(response.getStatusCode().is2xxSuccessful()));
+        System.out.println("Получил в ответ: " + response);
         Map<Integer, Integer> statistic = new HashMap<>();
         if (response.getStatusCode().is2xxSuccessful()) {
-            log.info("Статистику получил. Обрабатываю.");
-            try {
-                List<StatsDtoOut> stats = objectMapper.convertValue(response.getBody(), new TypeReference<>() {
-                });
+            System.out.println("Тело ответа: " + response.getBody());
+            List<StatsDtoOut> stats = objectMapper.convertValue(response.getBody(), new TypeReference<>() {
+            });
+            if (!stats.isEmpty()) {
                 for (StatsDtoOut statsDtoOut : stats) {
-                    statistic.put(Integer.parseInt(statsDtoOut.getUri().substring(8)),
-                            Integer.parseInt(String.valueOf(statsDtoOut.getHits())));
-                    log.info("Вставляю в мапу: {}, {}", Integer.parseInt(statsDtoOut.getUri().substring(8)),
-                            Integer.parseInt(String.valueOf(statsDtoOut.getHits())));
+                    if (statsDtoOut.getUri().length() > 7) {
+                        statistic.put(Integer.parseInt(statsDtoOut.getUri().substring(8)),
+                                Integer.parseInt(String.valueOf(statsDtoOut.getHits())));
+                        log.info("Вставляю в мапу: {}, {}", Integer.parseInt(statsDtoOut.getUri().substring(8)),
+                                Integer.parseInt(String.valueOf(statsDtoOut.getHits())));
+                    }
                 }
-            } catch (Exception e) {
-                throw new GetStatisticException("Получить статистику не удалось.");
             }
         }
         return statistic;
@@ -183,31 +198,31 @@ public class EventService {
         Pageable pageable = PageRequest.of(presentationParameters.getFrom() / presentationParameters.getSize(),
                                             presentationParameters.getSize());
         String text = null;
-        if (!searchParametersUsersPublic.getText().isBlank()) {
+        if (searchParametersUsersPublic.getText() != null) {
             text = searchParametersUsersPublic.getText().toLowerCase();
         }
         List<Integer> categories = null;
-        if (!searchParametersUsersPublic.getCategories().isEmpty()) {
+        if (searchParametersUsersPublic.getCategories() != null) {
             categories = searchParametersUsersPublic.getCategories();
         }
         Boolean paid = null;
         if (searchParametersUsersPublic.getPaid() != null) {
             paid = searchParametersUsersPublic.getPaid();
         }
-        LocalDateTime rangeStart;
-        LocalDateTime rangeEnd;
-        if (searchParametersUsersPublic.getRangeStart() != null && searchParametersUsersPublic.getRangeEnd() != null) {
+        LocalDateTime rangeStart = LocalDateTime.now().minusYears(1000);
+        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(1000);
+        if (searchParametersUsersPublic.getRangeStart() == null && searchParametersUsersPublic.getRangeEnd() == null) {
+            rangeStart = LocalDateTime.now();
+        } else if (searchParametersUsersPublic.getRangeStart() != null && searchParametersUsersPublic.getRangeEnd() == null) {
+            rangeStart = searchParametersUsersPublic.getRangeStart();
+        } else if (searchParametersUsersPublic.getRangeStart() == null) {
+            rangeEnd = searchParametersUsersPublic.getRangeEnd();
+        } else {
             rangeStart = searchParametersUsersPublic.getRangeStart();
             rangeEnd = searchParametersUsersPublic.getRangeEnd();
             if (rangeStart.isAfter(rangeEnd)) {
                 throw new StartEndValidationException("Переданы некорректные даты начала и окончания диапазона поиска");
             }
-        } else if (searchParametersUsersPublic.getRangeStart() != null) {
-            rangeStart = searchParametersUsersPublic.getRangeStart();
-            rangeEnd = LocalDateTime.now().plusYears(1000);
-        } else {
-            rangeStart = LocalDateTime.now().minusYears(1000);
-            rangeEnd = searchParametersUsersPublic.getRangeEnd();
         }
         Page<Event> events;
         events = eventRepository.findByParametersForPublic(EventState.PUBLISHED, text, categories, paid, rangeStart,
@@ -217,23 +232,10 @@ public class EventService {
                 .map(EventMapper::toEventFullDto)
                 .collect(Collectors.toList());
         List<EventFullDto> fullEventsDtoWithViews = addStatsToEventFullDtoInformation(fullEventsDtoNoViews);
-        List<Integer> eventIds = new ArrayList<>();
-        for (EventFullDto eventFullDto : fullEventsDtoWithViews) {
-            eventIds.add(eventFullDto.getId());
-        }
-        Map<Integer, Integer> eventsConfirmedRequests = participationRequestService.countEventsConfirmedRequests(eventIds);
-        for (EventFullDto eventFullDto : fullEventsDtoWithViews) {
-            eventFullDto.setConfirmedRequests(eventsConfirmedRequests.get(eventFullDto.getId()) == null ? 0 :
-                    eventsConfirmedRequests.get(eventFullDto.getId()));
-        }
-        Map<Integer, Integer> eventsParticipationLimit = new HashMap<>();
-        for (Event event : events) {
-            eventsParticipationLimit.put(event.getId(), event.getParticipantLimit());
-        }
         List<EventFullDto> filteredByParticipationLimit = new ArrayList<>();
         for (EventFullDto eventFullDto : fullEventsDtoWithViews) {
-            if (eventsParticipationLimit.get(eventFullDto.getId()) == 0 || eventFullDto.getConfirmedRequests()
-                    < eventsParticipationLimit.get(eventFullDto.getId())) {
+            if (eventFullDto.getParticipantLimit() == 0 || eventFullDto.getConfirmedRequests()
+                    < eventFullDto.getParticipantLimit()) {
                 filteredByParticipationLimit.add(eventFullDto);
             }
         }
@@ -248,28 +250,23 @@ public class EventService {
     }
 
     public EventFullDto getEventForPublic(int id, HttpServletRequest servletRequest) {
+        Event event = getEvent(id);
+        if (event.getState() != EventState.PUBLISHED) {
+            throw new NoSuchElementException("Событие с id " + id + " не опубликовано");
+        }
+        List<String> urisInList = new ArrayList<>();
+        urisInList.add("/events/" + id);
+        String[] uris = urisInList.toArray(new String[0]);
+        Map<Integer, Integer> statistic = getHitsStatistic(uris);
+        EventFullDto eventFullDto = EventMapper.toEventFullDto(event);
+        if (statistic.get(eventFullDto.getId()) != null) {
+            eventFullDto.setViews(statistic.get(eventFullDto.getId()));
+        }
         statsServerClient.postHit(new HitDto(0,
                 "emw-main-service",
                 "/events/" + id,
                 servletRequest.getRemoteAddr(),
                 LocalDateTime.now().format(MomentFormatter.DATE_TIME_FORMAT)));
-        Event event = getEvent(id);
-        if (event.getState() != EventState.PUBLISHED) {
-            throw new NoSuchElementException("Событие с id " + id + " не опубликовано");
-        }
-        List<String> uris = new ArrayList<>();
-        uris.add("/events/" + event.getId());
-        Map<Integer, Integer> statistic = getHitsStatistic(uris);
-        List<Integer> eventIds = new ArrayList<>();
-        eventIds.add(event.getId());
-        Map<Integer, Integer> eventsConfirmedRequests = participationRequestService.countEventsConfirmedRequests(eventIds);
-        EventFullDto eventFullDto = EventMapper.toEventFullDto(event);
-        if (statistic.get(event.getId()) != null) {
-            eventFullDto.setViews(statistic.get(event.getId()));
-        }
-        if (eventsConfirmedRequests.get(event.getId()) != null) {
-            eventFullDto.setConfirmedRequests(eventsConfirmedRequests.get(event.getId()));
-        }
         return eventFullDto;
     }
 
@@ -278,31 +275,31 @@ public class EventService {
         Pageable pageable = PageRequest.of(presentationParameters.getFrom() / presentationParameters.getSize(),
                 presentationParameters.getSize());
         List<Integer> users = null;
-        if (!searchParametersAdmin.getUsers().isEmpty()) {
+        if (searchParametersAdmin.getUsers() != null) {
             users = searchParametersAdmin.getUsers();
         }
         List<EventState> states = null;
-        if (!searchParametersAdmin.getStates().isEmpty()) {
+        if (searchParametersAdmin.getStates() != null) {
             states = searchParametersAdmin.getStates();
         }
         List<Integer> categories = null;
-        if (!searchParametersAdmin.getCategories().isEmpty()) {
+        if (searchParametersAdmin.getCategories() != null) {
             categories = searchParametersAdmin.getCategories();
         }
-        LocalDateTime rangeStart;
-        LocalDateTime rangeEnd;
-        if (searchParametersAdmin.getRangeStart() != null && searchParametersAdmin.getRangeEnd() != null) {
+        LocalDateTime rangeStart = LocalDateTime.now().minusYears(1000);
+        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(1000);
+        if (searchParametersAdmin.getRangeStart() == null && searchParametersAdmin.getRangeEnd() == null) {
+            rangeStart = LocalDateTime.now();
+        } else if (searchParametersAdmin.getRangeStart() != null && searchParametersAdmin.getRangeEnd() == null) {
+            rangeStart = searchParametersAdmin.getRangeStart();
+        } else if (searchParametersAdmin.getRangeStart() == null) {
+            rangeEnd = searchParametersAdmin.getRangeEnd();
+        } else {
             rangeStart = searchParametersAdmin.getRangeStart();
             rangeEnd = searchParametersAdmin.getRangeEnd();
             if (rangeStart.isAfter(rangeEnd)) {
                 throw new StartEndValidationException("Переданы некорректные даты начала и окончания диапазона поиска");
             }
-        } else if (searchParametersAdmin.getRangeStart() != null) {
-            rangeStart = searchParametersAdmin.getRangeStart();
-            rangeEnd = LocalDateTime.now().plusYears(1000);
-        } else {
-            rangeStart = LocalDateTime.now().minusYears(1000);
-            rangeEnd = searchParametersAdmin.getRangeEnd();
         }
         Page<Event> events;
         events = eventRepository.findByParametersForAdmin(users, states, categories, rangeStart, rangeEnd, pageable);
@@ -310,17 +307,7 @@ public class EventService {
                 .stream()
                 .map(EventMapper::toEventFullDto)
                 .collect(Collectors.toList());
-        List<EventFullDto> fullEventsDtoWithViews = addStatsToEventFullDtoInformation(fullEventsDtoNoViews);
-        List<Integer> eventIds = new ArrayList<>();
-        for (EventFullDto eventFullDto : fullEventsDtoWithViews) {
-            eventIds.add(eventFullDto.getId());
-        }
-        Map<Integer, Integer> eventsConfirmedRequests = participationRequestService.countEventsConfirmedRequests(eventIds);
-        for (EventFullDto eventFullDto : fullEventsDtoWithViews) {
-            eventFullDto.setConfirmedRequests(eventsConfirmedRequests.get(eventFullDto.getId()) == null ? 0 :
-                    eventsConfirmedRequests.get(eventFullDto.getId()));
-        }
-        return fullEventsDtoWithViews;
+        return addStatsToEventFullDtoInformation(fullEventsDtoNoViews);
     }
 
     public Event getEvent(int eventId) {

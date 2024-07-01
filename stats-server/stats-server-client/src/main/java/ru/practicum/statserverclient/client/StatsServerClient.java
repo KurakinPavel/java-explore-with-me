@@ -30,14 +30,13 @@ public class StatsServerClient extends BaseClient {
         return post("/hit", hitDto);
     }
 
-    public ResponseEntity<Object> getHitsStatistics(String start, String end, List<String> uris, Boolean unique) {
+    public ResponseEntity<Object> getHitsStatistics(String start, String end, String[] uris, Boolean unique) {
         Map<String, Object> parameters = Map.of(
                 "start", start,
                 "end", end,
                 "uris", uris,
                 "unique", unique
         );
-        log.info("Запрос: {}, {}", parameters.get("start"), parameters.get("end"));
         return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
     }
 }

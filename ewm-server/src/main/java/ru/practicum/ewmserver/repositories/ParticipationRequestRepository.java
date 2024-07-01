@@ -19,4 +19,8 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "GROUP BY pr.event.id")
     List<ConfirmedRequestsStats> findStatsForRequests(@Param("status") ParticipationRequestStatus status,
             @Param("eventIds") List<Integer> eventIds);
+
+    ParticipationRequest findOneByEvent_IdAndRequester_Id(int eventId, int requesterId);
+
+    List<ParticipationRequest> findAllByIdIn(List<Integer> requestIds);
 }

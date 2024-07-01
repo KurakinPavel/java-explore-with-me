@@ -22,9 +22,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
                 "AND ((LOWER(e.annotation) LIKE CONCAT('%', :text, '%') " +
                    "OR LOWER(e.description) LIKE CONCAT('%', :text, '%')) OR :text IS NULL) " +
                 "AND (e.category.id IN :categories OR :categories IS NULL) " +
-                "AND (e.paid = :paid OR :paid IS NULL) " +
+                "AND (CAST(e.paid AS boolean) = :paid OR :paid IS NULL) " +
                 "AND (e.eventDate BETWEEN :start AND :end) " +
-                "ORDER BY e.eventDate")
+            "ORDER BY e.eventDate")
     Page<Event> findByParametersForPublic(@Param("state") EventState state,
                                           @Param("text") String text,
                                           @Param("categories") List<Integer> categories,
@@ -34,10 +34,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     @Query( "SELECT e FROM Event AS e " +
             "WHERE (e.initiator.id IN :users OR :users IS NULL) " +
-            "AND (e.state IN :states OR :states IS NULL) " +
-            "AND (e.category.id IN :categories OR :categories IS NULL) " +
-            "AND (e.eventDate BETWEEN :start AND :end) " +
-            "ORDER BY e.eventDate")
+                "AND (e.state IN :states OR :states IS NULL) " +
+                "AND (e.category.id IN :categories OR :categories IS NULL) " +
+                "AND (e.eventDate BETWEEN :start AND :end)")
     Page<Event> findByParametersForAdmin(@Param("users") List<Integer> users,
                                          @Param("states") List<EventState> states,
                                          @Param("categories") List<Integer> categories,

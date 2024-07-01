@@ -78,5 +78,9 @@ public class PrivateController {
         return privateService.getUserEvents(userId, from, size);
     }
 
-
+    @GetMapping("/events/{eventId}")
+    public EventFullDto getEventOfUser(@PathVariable @Positive Integer userId,
+                                       @PathVariable @Positive Integer eventId) {
+        return privateService.getEventOfUser(userId, eventId);
+    }
 }

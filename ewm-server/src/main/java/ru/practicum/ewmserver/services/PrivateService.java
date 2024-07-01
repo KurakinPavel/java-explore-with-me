@@ -142,4 +142,11 @@ public class PrivateService {
         return eventService.getUserEvents(userId, from, size);
     }
 
+    @Transactional(readOnly = true)
+    public EventFullDto getEventOfUser(int userId, int eventId) {
+        User user = userService.getUser(userId);
+        UserMapper.toUserDto(user);
+        return eventService.getEventOfUser(userId, eventId);
+    }
+
 }

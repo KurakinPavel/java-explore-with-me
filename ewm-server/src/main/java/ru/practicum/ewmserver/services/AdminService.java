@@ -31,6 +31,11 @@ public class AdminService {
         return userService.save(userDto);
     }
 
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
+        return userService.getUsers(ids, from, size);
+    }
+
     @Transactional
     public CategoryDto save(CategoryDto categoryDto) {
         return categoryService.save(categoryDto);

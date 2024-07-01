@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.ewmserver.dto.CategoryDto;
 import ru.practicum.ewmserver.dto.EventFullDto;
 import ru.practicum.ewmserver.dto.EventShortDto;
 import ru.practicum.ewmserver.enums.SortType;
@@ -51,4 +52,14 @@ public class PublicController {
         return publicService.getEventForPublic(id, servletRequest);
     }
 
+    @GetMapping("/categories")
+    public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                           @RequestParam(defaultValue = "10") @Positive Integer size) {
+        return publicService.getCategories(from, size);
+    }
+
+    @GetMapping("/categories/{catId}")
+    public CategoryDto getCategoryById(@PathVariable @Positive Integer catId) {
+        return publicService.getCategoryById(catId);
+    }
 }

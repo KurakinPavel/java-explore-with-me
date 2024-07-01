@@ -43,6 +43,13 @@ public class AdminController {
         return adminService.save(userDto);
     }
 
+    @GetMapping("/users")
+    public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
+                            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                            @RequestParam(defaultValue = "10") @Positive Integer size) {
+        return adminService.getUsers(ids, from, size);
+    }
+
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryDto save(@RequestBody @Valid CategoryDto categoryDto) {

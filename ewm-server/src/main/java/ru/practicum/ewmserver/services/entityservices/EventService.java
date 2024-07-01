@@ -270,6 +270,22 @@ public class EventService {
         return eventFullDto;
     }
 
+    public EventFullDto getEventOfUser(int userId, int eventId) {
+        Event event = getEvent(eventId);
+        if (event.getInitiator().getId() != userId) {
+            throw new EventValidationException("Нельзя просматривать чужие события");
+        }
+        List<String> urisInList = new ArrayList<>();
+        urisInList.add("/events/" + eventId);
+        String[] uris = urisInList.toArray(new String[0]);
+        Map<Integer, Integer> statistic = getHitsStatistic(uris);
+        EventFullDto eventFullDto = EventMapper.toEventFullDto(event);
+        if (statistic.get(eventFullDto.getId()) != null) {
+            eventFullDto.setViews(statistic.get(eventFullDto.getId()));
+        }
+        return eventFullDto;
+    }
+
     public List<EventFullDto> getEventsWithFilteringForAdmin(SearchParametersAdmin searchParametersAdmin,
                                                              PresentationParameters presentationParameters) {
         Pageable pageable = PageRequest.of(presentationParameters.getFrom() / presentationParameters.getSize(),

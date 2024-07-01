@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewmserver.dto.CategoryDto;
 import ru.practicum.ewmserver.dto.EventFullDto;
 import ru.practicum.ewmserver.dto.EventShortDto;
+import ru.practicum.ewmserver.mappers.CategoryMapper;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersUsersPublic;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
@@ -35,6 +37,16 @@ public class PublicService {
     @Transactional(readOnly = true)
     public EventFullDto getEventForPublic(int id, HttpServletRequest servletRequest) {
         return eventService.getEventForPublic(id, servletRequest);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryDto> getCategories(int from, int size) {
+        return categoryService.getCategories(from, size);
+    }
+
+    @Transactional(readOnly = true)
+    public CategoryDto getCategoryById(int catId) {
+        return CategoryMapper.toCategoryDto(categoryService.getCategory(catId));
     }
 
 }

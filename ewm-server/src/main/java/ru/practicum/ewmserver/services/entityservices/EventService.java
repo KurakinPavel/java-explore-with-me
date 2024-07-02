@@ -50,11 +50,14 @@ import java.util.stream.Collectors;
 public class EventService {
     private final EventRepository eventRepository;
     private final StatsServerClient statsServerClient;
-    private final ParticipationRequestService participationRequestService;
     private final ObjectMapper objectMapper;
 
     public EventFullDto save(NewEventDto newEventDto, User initiator, Category category) {
         return EventMapper.toEventFullDto(eventRepository.save(EventMapper.toEvent(newEventDto, initiator, category)));
+    }
+
+    public List<Event> getEventsByIds(List<Integer> eventIds) {
+        return eventRepository.findAllById(eventIds);
     }
 
     public void save(Event event) {

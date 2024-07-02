@@ -5,18 +5,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.CategoryDto;
+import ru.practicum.ewmserver.dto.CompilationDto;
 import ru.practicum.ewmserver.dto.EventFullDto;
+import ru.practicum.ewmserver.dto.NewCompilationDto;
 import ru.practicum.ewmserver.dto.UpdateEventRequest;
 import ru.practicum.ewmserver.dto.UserDto;
+import ru.practicum.ewmserver.mappers.CompilationMapper;
 import ru.practicum.ewmserver.model.Category;
+import ru.practicum.ewmserver.model.Compilation;
+import ru.practicum.ewmserver.model.Event;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersAdmin;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
+import ru.practicum.ewmserver.services.entityservices.CompilationService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
 
 import javax.servlet.ServletRequest;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -25,6 +34,7 @@ public class AdminService {
     private final UserService userService;
     private final CategoryService categoryService;
     private final EventService eventService;
+    private final CompilationService compilationService;
 
     @Transactional
     public UserDto save(UserDto userDto) {
@@ -69,5 +79,40 @@ public class AdminService {
     @Transactional
     public void deleteUser(int userId) {
         userService.deleteUser(userId);
+    }
+
+    @Transactional
+    public void deleteCompilation(int compId) {
+        compilationService.deleteCompilation(compId);
+    }
+
+    @Transactional
+    public CompilationDto saveCompilation(NewCompilationDto newCompilationDto) {
+        if (newCompilationDto.getTitle() == null || newCompilationDto.getTitle().isBlank()) {
+            throw new IllegalArgumentException("При создании подборки отсутствие заголовка не допускается");
+        }
+        List<Integer> eventsIds = new ArrayList<>();
+        if (newCompilationDto.getEvents() != null) {
+            eventsIds = newCompilationDto.getEvents();
+        }
+        Set<Event> eventsForCompilation = new HashSet<>(eventService.getEventsByIds(eventsIds));
+        Compilation compilation = CompilationMapper.toCompilation(newCompilationDto, eventsForCompilation);
+        return CompilationMapper.toCompilationDto(compilationService.saveCompilation(compilation));
+    }
+
+    @Transactional
+    public CompilationDto updateCompilation(int compId, NewCompilationDto newCompilationDto) {
+        Compilation updatingCompilation = compilationService.getCompilation(compId);
+        if (newCompilationDto.getTitle() != null) {
+            updatingCompilation.setTitle(newCompilationDto.getTitle());
+        }
+        if (newCompilationDto.getPinned() != null) {
+            updatingCompilation.setPinned(newCompilationDto.getPinned());
+        }
+        if (newCompilationDto.getEvents() != null) {
+            Set<Event> eventsForCompilation = new HashSet<>(eventService.getEventsByIds(newCompilationDto.getEvents()));
+            updatingCompilation.setEvents(eventsForCompilation);
+        }
+        return CompilationMapper.toCompilationDto(compilationService.saveCompilation(updatingCompilation));
     }
 }

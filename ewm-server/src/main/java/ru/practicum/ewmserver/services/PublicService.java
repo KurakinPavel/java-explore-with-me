@@ -2,15 +2,20 @@ package ru.practicum.ewmserver.services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.CategoryDto;
+import ru.practicum.ewmserver.dto.CompilationDto;
 import ru.practicum.ewmserver.dto.EventFullDto;
 import ru.practicum.ewmserver.dto.EventShortDto;
 import ru.practicum.ewmserver.mappers.CategoryMapper;
+import ru.practicum.ewmserver.mappers.CompilationMapper;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersUsersPublic;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
+import ru.practicum.ewmserver.services.entityservices.CompilationService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.ParticipationRequestService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
@@ -26,6 +31,7 @@ public class PublicService {
     private final UserService userService;
     private final CategoryService categoryService;
     private final ParticipationRequestService participationRequestService;
+    private final CompilationService compilationService;
 
     @Transactional(readOnly = true)
     public List<EventShortDto> getEventsWithFiltering(SearchParametersUsersPublic searchParametersUsersPublic,
@@ -49,4 +55,13 @@ public class PublicService {
         return CategoryMapper.toCategoryDto(categoryService.getCategory(catId));
     }
 
+    @Transactional(readOnly = true)
+    public CompilationDto getCompilationById(int compId) {
+        return CompilationMapper.toCompilationDto(compilationService.getCompilation(compId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CompilationDto> getCompilations(Boolean pinned, int from, int size) {
+        return compilationService.getCompilations(pinned, from, size);
+    }
 }

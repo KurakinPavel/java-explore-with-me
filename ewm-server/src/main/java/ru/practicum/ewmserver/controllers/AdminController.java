@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewmserver.dto.CategoryDto;
+import ru.practicum.ewmserver.dto.CompilationDto;
 import ru.practicum.ewmserver.dto.EventFullDto;
+import ru.practicum.ewmserver.dto.NewCompilationDto;
 import ru.practicum.ewmserver.dto.UpdateEventRequest;
 import ru.practicum.ewmserver.dto.UserDto;
 import ru.practicum.ewmserver.enums.EventState;
@@ -23,13 +25,11 @@ import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersAdmin;
 import ru.practicum.ewmserver.services.AdminService;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/admin")
@@ -41,7 +41,7 @@ public class AdminController {
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto save(@RequestBody @Valid UserDto userDto) {
-        log.info("Request from controller for post new User");
+        log.info("Контроллер админа получил запрос на добавление нового пользователя");
         return adminService.save(userDto);
     }
 
@@ -49,27 +49,28 @@ public class AdminController {
     public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
                             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
                             @RequestParam(defaultValue = "10") @Positive Integer size) {
+        log.info("Контроллер админа получил запрос на вывод списка пользователей");
         return adminService.getUsers(ids, from, size);
     }
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryDto save(@RequestBody @Valid CategoryDto categoryDto) {
-        log.info("Request from controller for post new Category");
+        log.info("Контроллер админа получил запрос на добавление новой категории");
         return adminService.save(categoryDto);
     }
 
     @PatchMapping("/categories/{catId}")
     public CategoryDto update(@PathVariable Integer catId,
                               @RequestBody @Valid CategoryDto categoryDto) {
-        log.info("Request from controller for update Category id = {}", catId);
+        log.info("Контроллер админа получил запрос на обновление Category id = {}", catId);
         return adminService.update(catId, categoryDto);
     }
 
     @PatchMapping("/events/{eventId}")
     public EventFullDto update(@PathVariable Integer eventId,
                                @RequestBody @Valid UpdateEventRequest updateEventRequest) {
-        log.info("Request from admin controller for update Event id = {}", eventId);
+        log.info("Контроллер админа получил запрос на обновление Event id = {}", eventId);
         return adminService.update(eventId, updateEventRequest);
     }
 
@@ -85,18 +86,42 @@ public class AdminController {
 
         SearchParametersAdmin searchParametersAdmin = new SearchParametersAdmin(users, states, categories, rangeStart, rangeEnd);
         PresentationParameters presentationParameters = new PresentationParameters(null, from, size);
+        log.info("Контроллер админа получил запрос на вывод списка событий с фильтрацией");
         return adminService.getEventsWithFilteringForAdmin(searchParametersAdmin, presentationParameters);
     }
 
     @DeleteMapping("/categories/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCategory(@PathVariable @Positive Integer catId) {
+        log.info("Контроллер админа получил запрос на удаление категории с id = {}", catId);
         adminService.deleteCategory(catId);
     }
 
     @DeleteMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable @Positive Integer userId) {
+        log.info("Контроллер админа получил запрос на удаление пользователя с id = {}", userId);
         adminService.deleteUser(userId);
+    }
+
+    @DeleteMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCompilation(@PathVariable @Positive Integer compId) {
+        log.info("Контроллер админа получил запрос на удаление подборки с id = {}", compId);
+        adminService.deleteCompilation(compId);
+    }
+
+    @PostMapping("/compilations")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CompilationDto saveCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
+        log.info("Контроллер админа получил запрос на добавление новой подборки событий");
+        return adminService.saveCompilation(newCompilationDto);
+    }
+
+    @PatchMapping("/compilations/{compId}")
+    public CompilationDto updateCompilation(@PathVariable @Positive Integer compId,
+                                            @RequestBody @Valid NewCompilationDto newCompilationDto) {
+        log.info("Контроллер админа получил запрос на обновление подборки событий");
+        return adminService.updateCompilation(compId, newCompilationDto);
     }
 }

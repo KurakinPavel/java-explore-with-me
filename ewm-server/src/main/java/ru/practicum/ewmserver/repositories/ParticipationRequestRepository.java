@@ -13,14 +13,11 @@ import java.util.List;
 @Repository
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Integer> {
 
-    @Query( "SELECT new ru.practicum.ewmserver.dto.ConfirmedRequestsStats(pr.event.id, COUNT(pr.id)) " +
-            "FROM ParticipationRequest AS pr " +
-            "WHERE pr.status = :status AND pr.event.id IN :eventIds " +
-            "GROUP BY pr.event.id")
-    List<ConfirmedRequestsStats> findStatsForRequests(@Param("status") ParticipationRequestStatus status,
-            @Param("eventIds") List<Integer> eventIds);
-
     ParticipationRequest findOneByEvent_IdAndRequester_Id(int eventId, int requesterId);
 
     List<ParticipationRequest> findAllByIdIn(List<Integer> requestIds);
+
+    List<ParticipationRequest> findAllByRequester_Id(int requesterId);
+
+    List<ParticipationRequest> findAllByEvent_Id(int eventId);
 }

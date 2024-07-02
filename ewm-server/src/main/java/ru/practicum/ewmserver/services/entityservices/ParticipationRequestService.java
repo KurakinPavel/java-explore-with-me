@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,6 +32,7 @@ public class ParticipationRequestService {
                 event, requester,
                 participationRequestStatus
         );
+        log.info("Сохраняется запрос с параметрами: eventId={}, requesterId={}, status={}", event.getId(), requester.getId(), participationRequestStatus);
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
     }
 
@@ -43,21 +45,24 @@ public class ParticipationRequestService {
         if (canceledParticipationRequest.getRequester().getId() != userId) {
             throw new UserValidationException("Нельзя отменять чужие запросы");
         }
-        canceledParticipationRequest.setStatus(ParticipationRequestStatus.REJECTED);
+        canceledParticipationRequest.setStatus(ParticipationRequestStatus.CANCELED);
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(canceledParticipationRequest));
     }
 
-    public List<ParticipationRequest> getRequestByEventAndRequestIds(List<Integer> requestIds) {
-        return participationRequestRepository.findAllByIdIn(requestIds);
+    public List<ParticipationRequestDto> getUserRequests(int userId) {
+        return participationRequestRepository.findAllByRequester_Id(userId).stream()
+                .map(ParticipationRequestMapper::toParticipationRequestDto)
+                .collect(Collectors.toList());
     }
 
-    public Map<Integer, Integer> countEventsConfirmedRequests(List<Integer> eventIds) {
-        List<ConfirmedRequestsStats> statsForConfirmedRequests = participationRequestRepository.findStatsForRequests(ParticipationRequestStatus.CONFIRMED, eventIds);
-        Map<Integer, Integer> eventsConfirmedRequests = new HashMap<>();
-        for (ConfirmedRequestsStats stats : statsForConfirmedRequests) {
-            eventsConfirmedRequests.put(stats.getEventId(), Math.toIntExact(stats.getConfirmedRequests()));
-        }
-        return eventsConfirmedRequests;
+    public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(int eventId) {
+        return participationRequestRepository.findAllByEvent_Id(eventId).stream()
+                .map(ParticipationRequestMapper::toParticipationRequestDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<ParticipationRequest> getRequestByIds(List<Integer> requestIds) {
+        return participationRequestRepository.findAllByIdIn(requestIds);
     }
 
     public ParticipationRequest getRequestByEventAndRequester(int eventId, int requesterId) {

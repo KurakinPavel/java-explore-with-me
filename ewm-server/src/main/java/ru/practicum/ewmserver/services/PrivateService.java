@@ -16,6 +16,7 @@ import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.enums.ParticipationRequestStatus;
 import ru.practicum.ewmserver.exceptions.custom.EventTimeValidationException;
 import ru.practicum.ewmserver.exceptions.custom.ParticipationRequestValidationException;
+import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
 import ru.practicum.ewmserver.mappers.ParticipationRequestMapper;
 import ru.practicum.ewmserver.mappers.UserMapper;
 import ru.practicum.ewmserver.model.Category;
@@ -90,11 +91,13 @@ public class PrivateService {
     @Transactional
     public EventRequestStatusUpdateResult updateRequestsStatus(int userId, int eventId,
                                                                EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
+        log.info("Поступил запрос на изменение статуса заявки на участие с параметрами: requestIds={}, status={}",
+                eventRequestStatusUpdateRequest.getRequestIds(), eventRequestStatusUpdateRequest.getStatus());
         User user = userService.getUser(userId);
         UserMapper.toUserDto(user);
         Event event = eventService.getEvent(eventId);
         List<Integer> requestIds = eventRequestStatusUpdateRequest.getRequestIds();
-        List<ParticipationRequest> participationRequests = participationRequestService.getRequestByEventAndRequestIds(requestIds);
+        List<ParticipationRequest> participationRequests = participationRequestService.getRequestByIds(requestIds);
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
             event.setConfirmedRequests(event.getConfirmedRequests() + participationRequests.size());
             eventService.save(event);
@@ -114,7 +117,10 @@ public class PrivateService {
                 throw new ParticipationRequestValidationException("Статус заявок можно изменить только у " +
                         "находящихся в режиме ожидания. Заявки отклонены");
             }
-            if (event.getParticipantLimit() > event.getConfirmedRequests()) {
+            if (event.getParticipantLimit() > event.getConfirmedRequests() &&
+                    ParticipationRequestStatus.from(eventRequestStatusUpdateRequest.getStatus()).orElseThrow(() ->
+                            new IllegalArgumentException("Unknown state: " + eventRequestStatusUpdateRequest.getStatus()))
+                            .equals(ParticipationRequestStatus.CONFIRMED)) {
                 participationRequest.setStatus(ParticipationRequestStatus.CONFIRMED);
                 updatedParticipationRequests.add(participationRequest);
                 confirmedRequests.add(ParticipationRequestMapper.toParticipationRequestDto(participationRequest));
@@ -124,7 +130,6 @@ public class PrivateService {
                 updatedParticipationRequests.add(participationRequest);
                 rejectedRequests.add(ParticipationRequestMapper.toParticipationRequestDto(participationRequest));
             }
-
         }
         eventService.save(event);
         participationRequestService.saveAll(updatedParticipationRequests);
@@ -134,6 +139,21 @@ public class PrivateService {
     @Transactional
     public ParticipationRequestDto cancel(int userId, int requestId) {
         return participationRequestService.cancel(userId, requestId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParticipationRequestDto> getUserRequests(int userId) {
+        userService.getUser(userId).getId();
+        return participationRequestService.getUserRequests(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(int userId, int eventId) {
+        int initiatorId = eventService.getEvent(eventId).getInitiator().getId();
+        if (userId != initiatorId) {
+            throw new UserValidationException("Событий пользователя не найдено");
+        }
+        return participationRequestService.getRequestsForParticipationInUserEvent(eventId);
     }
 
     @Transactional(readOnly = true)
@@ -148,5 +168,4 @@ public class PrivateService {
         UserMapper.toUserDto(user);
         return eventService.getEventOfUser(userId, eventId);
     }
-
 }

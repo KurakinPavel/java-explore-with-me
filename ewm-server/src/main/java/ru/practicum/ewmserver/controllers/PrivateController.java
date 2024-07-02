@@ -51,10 +51,15 @@ public class PrivateController {
 
     @PostMapping("/requests")
     @ResponseStatus(HttpStatus.CREATED)
-    public ParticipationRequestDto save(@PathVariable Integer userId,
-                                        @RequestParam("eventId") Integer eventId) {
+    public ParticipationRequestDto save(@PathVariable @Positive Integer userId,
+                                        @RequestParam("eventId") @Positive Integer eventId) {
         log.info("Запрос от контроллера на создание запроса на участие в событии: userId = {}, eventId = {}", userId, eventId);
         return privateService.save(userId, eventId);
+    }
+
+    @GetMapping("/requests")
+    public List<ParticipationRequestDto> getUserRequests(@PathVariable @Positive Integer userId) {
+        return privateService.getUserRequests(userId);
     }
 
     @PatchMapping("/events/{eventId}/requests")
@@ -63,6 +68,13 @@ public class PrivateController {
             @PathVariable @Positive Integer eventId,
             @RequestBody @Valid EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
         return privateService.updateRequestsStatus(userId, eventId, eventRequestStatusUpdateRequest);
+    }
+
+    @GetMapping("/events/{eventId}/requests")
+    public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(
+            @PathVariable @Positive Integer userId,
+            @PathVariable @Positive Integer eventId) {
+        return privateService.getRequestsForParticipationInUserEvent(userId, eventId);
     }
 
     @PatchMapping("/requests/{requestId}/cancel")

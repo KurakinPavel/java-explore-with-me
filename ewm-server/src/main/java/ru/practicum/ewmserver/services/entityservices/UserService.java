@@ -40,6 +40,12 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public void deleteUser(int userId) {
+        User user = getUser(userId);
+        user.getId();
+        userRepository.delete(user);
+    }
+
     public User getUser(int userId) {
         return userRepository.getReferenceById(userId);
     }

@@ -52,4 +52,10 @@ public class CategoryService {
                 .map(CategoryMapper::toCategoryDto)
                 .collect(Collectors.toList());
     }
+
+    public void deleteCategory(int catId) {
+        Category category = getCategory(catId);
+        category.getId();
+        categoryRepository.delete(category);
+    }
 }

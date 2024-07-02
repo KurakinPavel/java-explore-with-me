@@ -60,4 +60,14 @@ public class AdminService {
                                                              PresentationParameters presentationParameters) {
         return eventService.getEventsWithFilteringForAdmin(searchParametersAdmin, presentationParameters);
     }
+
+    @Transactional
+    public void deleteCategory(int catId) {
+        categoryService.deleteCategory(catId);
+    }
+
+    @Transactional
+    public void deleteUser(int userId) {
+        userService.deleteUser(userId);
+    }
 }

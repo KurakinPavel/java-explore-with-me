@@ -9,7 +9,6 @@ import org.hibernate.annotations.Type;
 import ru.practicum.ewmserver.enums.EventState;
 
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;

@@ -7,8 +7,7 @@ services:
     depends_on:
       - stats-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/shareit
-      - STAT_SERVER_URL=http://stats-server:9090
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stat
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
 
@@ -17,7 +16,7 @@ services:
     ports:
       - "6541:5432"
     environment:
-      - POSTGRES_DB=shareit
+      - POSTGRES_DB=stat
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
 
@@ -26,10 +25,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - ewm-db
       - stats-server
+      - ewm-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/shareit
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
       - STAT_SERVER_URL=http://stats-server:9090
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -39,6 +38,6 @@ services:
     ports:
       - "6542:5432"
     environment:
-      - POSTGRES_DB=shareit
+      - POSTGRES_DB=ewm
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root

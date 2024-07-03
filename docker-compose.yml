@@ -19,7 +19,7 @@ services:
     ports:
       - "6541:5432"
     environment:
-      - POSTGRES_DB=stat
+      - POSTGRES_DB=stats
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
 

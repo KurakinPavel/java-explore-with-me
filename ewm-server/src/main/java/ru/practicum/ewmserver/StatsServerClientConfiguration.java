@@ -9,7 +9,7 @@ import ru.practicum.statserverclient.client.StatsServerClient;
 @Configuration
 public class StatsServerClientConfiguration {
     @Bean
-    public StatsServerClient statsServerClient(@Value("${STATS_SERVER_URL}") String statisticServerUrl, RestTemplateBuilder builder) {
+    public StatsServerClient statsServerClient(@Value("${stat-server.url}") String statisticServerUrl, RestTemplateBuilder builder) {
         return new StatsServerClient(statisticServerUrl, builder);
     }
 }

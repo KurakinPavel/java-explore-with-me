@@ -1,9 +1,9 @@
 package ru.practicum.ewmserver.mappers;
 
-import ru.practicum.ewmserver.dto.EventFullDto;
-import ru.practicum.ewmserver.dto.EventShortDto;
+import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.event.EventShortDto;
 import ru.practicum.ewmserver.dto.MomentFormatter;
-import ru.practicum.ewmserver.dto.NewEventDto;
+import ru.practicum.ewmserver.dto.event.NewEventDto;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.model.Event;

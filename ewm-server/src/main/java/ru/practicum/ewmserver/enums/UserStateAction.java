@@ -3,7 +3,6 @@ package ru.practicum.ewmserver.enums;
 import java.util.Optional;
 
 public enum UserStateAction {
-
     SEND_TO_REVIEW, CANCEL_REVIEW;
 
     public static Optional<UserStateAction> from(String stringStateAction) {

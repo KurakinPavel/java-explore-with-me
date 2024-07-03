@@ -4,14 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewmserver.dto.EventFullDto;
-import ru.practicum.ewmserver.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.ewmserver.dto.EventRequestStatusUpdateResult;
-import ru.practicum.ewmserver.dto.EventShortDto;
+import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.request.EventRequestStatusUpdateRequest;
+import ru.practicum.ewmserver.dto.request.EventRequestStatusUpdateResult;
+import ru.practicum.ewmserver.dto.event.EventShortDto;
 import ru.practicum.ewmserver.dto.MomentFormatter;
-import ru.practicum.ewmserver.dto.NewEventDto;
-import ru.practicum.ewmserver.dto.ParticipationRequestDto;
-import ru.practicum.ewmserver.dto.UpdateEventRequest;
+import ru.practicum.ewmserver.dto.event.NewEventDto;
+import ru.practicum.ewmserver.dto.request.ParticipationRequestDto;
+import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.enums.ParticipationRequestStatus;
 import ru.practicum.ewmserver.exceptions.custom.EventTimeValidationException;
@@ -42,8 +42,16 @@ public class PrivateService {
     private final CategoryService categoryService;
     private final ParticipationRequestService participationRequestService;
 
+    /** События */
+
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getUserEvents(int userId, int from, int size) {
+        userService.getUser(userId).getId();
+        return eventService.getUserEvents(userId, from, size);
+    }
+
     @Transactional
-    public EventFullDto save(int userId, NewEventDto newEventDto) {
+    public EventFullDto saveEvent(int userId, NewEventDto newEventDto) {
         if (LocalDateTime.parse(newEventDto.getEventDate(), MomentFormatter.DATE_TIME_FORMAT)
                 .isBefore(LocalDateTime.now().plusHours(2))) {
             throw new EventTimeValidationException("Дата события не может быть раньше, чем через два часа от текущего момента");
@@ -53,8 +61,15 @@ public class PrivateService {
         return eventService.save(newEventDto, initiator, category);
     }
 
+    @Transactional(readOnly = true)
+    public EventFullDto getEventOfUser(int userId, int eventId) {
+        User user = userService.getUser(userId);
+        UserMapper.toUserDto(user);
+        return eventService.getEventOfUserForPrivate(userId, eventId);
+    }
+
     @Transactional
-    public EventFullDto update(int userId, int eventId, UpdateEventRequest updateEventRequest) {
+    public EventFullDto updateEventOfUser(int userId, int eventId, UpdateEventRequest updateEventRequest) {
         Category category = null;
         if (updateEventRequest.getCategory() != null) {
             category = categoryService.getCategory(updateEventRequest.getCategory());
@@ -62,8 +77,70 @@ public class PrivateService {
         return eventService.updateByUser(userId, eventId, updateEventRequest, category);
     }
 
+    @Transactional(readOnly = true)
+    public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(int userId, int eventId) {
+        int initiatorId = eventService.getEvent(eventId).getInitiator().getId();
+        if (userId != initiatorId) {
+            throw new UserValidationException("Событий пользователя не найдено");
+        }
+        return participationRequestService.getRequestsForParticipationInUserEvent(eventId);
+    }
+
     @Transactional
-    public ParticipationRequestDto save(int requesterId, int eventId) {
+    public EventRequestStatusUpdateResult updateRequestsStatus(int userId, int eventId,
+                                                               EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
+        userService.getUser(userId).getId();
+        Event event = eventService.getEvent(eventId);
+        List<Integer> requestIds = eventRequestStatusUpdateRequest.getRequestIds();
+        List<ParticipationRequest> participationRequests = participationRequestService.getRequestByIds(requestIds);
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+            event.setConfirmedRequests(event.getConfirmedRequests() + participationRequests.size());
+            eventService.save(event);
+            List<ParticipationRequestDto> participationRequestsDto = participationRequests.stream()
+                    .map(ParticipationRequestMapper::toParticipationRequestDto)
+                    .collect(Collectors.toList());
+            return new EventRequestStatusUpdateResult(participationRequestsDto, new ArrayList<>());
+        }
+        if (event.getConfirmedRequests() == event.getParticipantLimit()) {
+            throw new ParticipationRequestValidationException("Достигнут предел количества участников. Заявки отклонены");
+        }
+        List<ParticipationRequest> updatedParticipationRequests = new ArrayList<>();
+        List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
+        List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
+        for (ParticipationRequest participationRequest : participationRequests) {
+            if (!participationRequest.getStatus().equals(ParticipationRequestStatus.PENDING)) {
+                throw new ParticipationRequestValidationException("Статус заявок можно изменить только у " +
+                        "находящихся в режиме ожидания. Заявки отклонены");
+            }
+            if (event.getParticipantLimit() > event.getConfirmedRequests() &&
+                    ParticipationRequestStatus.from(eventRequestStatusUpdateRequest.getStatus()).orElseThrow(() ->
+                                    new IllegalArgumentException("Unknown state: " + eventRequestStatusUpdateRequest.getStatus()))
+                            .equals(ParticipationRequestStatus.CONFIRMED)) {
+                participationRequest.setStatus(ParticipationRequestStatus.CONFIRMED);
+                updatedParticipationRequests.add(participationRequest);
+                confirmedRequests.add(ParticipationRequestMapper.toParticipationRequestDto(participationRequest));
+                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            } else {
+                participationRequest.setStatus(ParticipationRequestStatus.REJECTED);
+                updatedParticipationRequests.add(participationRequest);
+                rejectedRequests.add(ParticipationRequestMapper.toParticipationRequestDto(participationRequest));
+            }
+        }
+        eventService.save(event);
+        participationRequestService.saveAll(updatedParticipationRequests);
+        return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
+    }
+
+    /** Запросы на участие */
+
+    @Transactional(readOnly = true)
+    public List<ParticipationRequestDto> getUserRequests(int userId) {
+        userService.getUser(userId).getId();
+        return participationRequestService.getUserRequests(userId);
+    }
+
+    @Transactional
+    public ParticipationRequestDto saveParticipationRequest(int requesterId, int eventId) {
         User requester = userService.getUser(requesterId);
         Event event = eventService.getEvent(eventId);
         if (requesterId == event.getInitiator().getId()) {
@@ -89,83 +166,7 @@ public class PrivateService {
     }
 
     @Transactional
-    public EventRequestStatusUpdateResult updateRequestsStatus(int userId, int eventId,
-                                                               EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
-        log.info("Поступил запрос на изменение статуса заявки на участие с параметрами: requestIds={}, status={}",
-                eventRequestStatusUpdateRequest.getRequestIds(), eventRequestStatusUpdateRequest.getStatus());
-        User user = userService.getUser(userId);
-        UserMapper.toUserDto(user);
-        Event event = eventService.getEvent(eventId);
-        List<Integer> requestIds = eventRequestStatusUpdateRequest.getRequestIds();
-        List<ParticipationRequest> participationRequests = participationRequestService.getRequestByIds(requestIds);
-        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
-            event.setConfirmedRequests(event.getConfirmedRequests() + participationRequests.size());
-            eventService.save(event);
-            List<ParticipationRequestDto> participationRequestsDto = participationRequests.stream()
-                    .map(ParticipationRequestMapper::toParticipationRequestDto)
-                    .collect(Collectors.toList());
-            return new EventRequestStatusUpdateResult(participationRequestsDto, new ArrayList<>());
-        }
-        if (event.getConfirmedRequests() == event.getParticipantLimit()) {
-            throw new ParticipationRequestValidationException("Достигнут предел количества участников. Заявки отклонены");
-        }
-        List<ParticipationRequest> updatedParticipationRequests = new ArrayList<>();
-        List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
-        List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
-        for (ParticipationRequest participationRequest : participationRequests) {
-            if (!participationRequest.getStatus().equals(ParticipationRequestStatus.PENDING)) {
-                throw new ParticipationRequestValidationException("Статус заявок можно изменить только у " +
-                        "находящихся в режиме ожидания. Заявки отклонены");
-            }
-            if (event.getParticipantLimit() > event.getConfirmedRequests() &&
-                    ParticipationRequestStatus.from(eventRequestStatusUpdateRequest.getStatus()).orElseThrow(() ->
-                            new IllegalArgumentException("Unknown state: " + eventRequestStatusUpdateRequest.getStatus()))
-                            .equals(ParticipationRequestStatus.CONFIRMED)) {
-                participationRequest.setStatus(ParticipationRequestStatus.CONFIRMED);
-                updatedParticipationRequests.add(participationRequest);
-                confirmedRequests.add(ParticipationRequestMapper.toParticipationRequestDto(participationRequest));
-                event.setConfirmedRequests(event.getConfirmedRequests() + 1);
-            } else {
-                participationRequest.setStatus(ParticipationRequestStatus.REJECTED);
-                updatedParticipationRequests.add(participationRequest);
-                rejectedRequests.add(ParticipationRequestMapper.toParticipationRequestDto(participationRequest));
-            }
-        }
-        eventService.save(event);
-        participationRequestService.saveAll(updatedParticipationRequests);
-        return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
-    }
-
-    @Transactional
-    public ParticipationRequestDto cancel(int userId, int requestId) {
+    public ParticipationRequestDto cancelParticipationRequest(int userId, int requestId) {
         return participationRequestService.cancel(userId, requestId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ParticipationRequestDto> getUserRequests(int userId) {
-        userService.getUser(userId).getId();
-        return participationRequestService.getUserRequests(userId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(int userId, int eventId) {
-        int initiatorId = eventService.getEvent(eventId).getInitiator().getId();
-        if (userId != initiatorId) {
-            throw new UserValidationException("Событий пользователя не найдено");
-        }
-        return participationRequestService.getRequestsForParticipationInUserEvent(eventId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<EventShortDto> getUserEvents(int userId, int from, int size) {
-        User user = userService.getUser(userId);
-        return eventService.getUserEvents(userId, from, size);
-    }
-
-    @Transactional(readOnly = true)
-    public EventFullDto getEventOfUser(int userId, int eventId) {
-        User user = userService.getUser(userId);
-        UserMapper.toUserDto(user);
-        return eventService.getEventOfUser(userId, eventId);
     }
 }

@@ -3,7 +3,6 @@ package ru.practicum.ewmserver.enums;
 import java.util.Optional;
 
 public enum AdminStateAction {
-
     PUBLISH_EVENT, REJECT_EVENT;
 
     public static Optional<AdminStateAction> from(String stringStateAction) {
@@ -14,6 +13,4 @@ public enum AdminStateAction {
         }
         return Optional.empty();
     }
-
-
 }

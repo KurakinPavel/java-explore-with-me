@@ -1,21 +1,21 @@
-package ru.practicum.ewmserver.dto;
+package ru.practicum.ewmserver.dto.compilation;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-public class CompilationDto {
+public class NewCompilationDto {
     protected Integer id;
-    protected List<EventShortDto> events;
+    protected List<Integer> events;
     protected Boolean pinned;
+    @Size(min = 1, max = 50)
     protected String title;
 }

@@ -2,15 +2,13 @@ package ru.practicum.ewmserver.services.entityservices;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewmserver.dto.CategoryDto;
+import ru.practicum.ewmserver.dto.category.CategoryDto;
 import ru.practicum.ewmserver.exceptions.custom.CategoryValidationException;
 import ru.practicum.ewmserver.mappers.CategoryMapper;
 import ru.practicum.ewmserver.model.Category;
-import ru.practicum.ewmserver.model.User;
 import ru.practicum.ewmserver.repositories.CategoryRepository;
 
 import java.util.List;

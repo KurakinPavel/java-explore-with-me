@@ -1,4 +1,4 @@
-package ru.practicum.ewmserver.dto;
+package ru.practicum.ewmserver.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.ewmserver.model.Location;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
@@ -15,19 +17,24 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class UpdateEventRequest {
+public class NewEventDto {
+    protected Integer id;
+    @NotBlank
     @Size(min = 20, max = 2000)
     protected String annotation;
     protected Integer category;
+    @NotBlank
     @Size(min = 20, max = 7000)
     protected String description;
+    @NotBlank
     protected String eventDate;
+    @NotNull
     protected Location location;
     protected Boolean paid;
     @PositiveOrZero
-    protected Integer participantLimit;
+    protected int participantLimit;
     protected Boolean requestModeration;
-    protected String stateAction;
+    @NotBlank
     @Size(min = 3, max = 120)
     protected String title;
 }

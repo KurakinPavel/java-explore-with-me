@@ -1,7 +1,7 @@
 package ru.practicum.ewmserver.mappers;
 
-import ru.practicum.ewmserver.dto.UserDto;
-import ru.practicum.ewmserver.dto.UserShortDto;
+import ru.practicum.ewmserver.dto.user.UserDto;
+import ru.practicum.ewmserver.dto.user.UserShortDto;
 import ru.practicum.ewmserver.model.User;
 
 public class UserMapper {

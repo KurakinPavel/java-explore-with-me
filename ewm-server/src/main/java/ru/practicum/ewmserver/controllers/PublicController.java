@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.ewmserver.dto.CategoryDto;
-import ru.practicum.ewmserver.dto.CompilationDto;
-import ru.practicum.ewmserver.dto.EventFullDto;
-import ru.practicum.ewmserver.dto.EventShortDto;
+import ru.practicum.ewmserver.dto.category.CategoryDto;
+import ru.practicum.ewmserver.dto.compilation.CompilationDto;
+import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.event.EventShortDto;
 import ru.practicum.ewmserver.enums.SortType;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersUsersPublic;
@@ -30,6 +30,36 @@ import java.util.List;
 @Slf4j
 public class PublicController {
     private final PublicService publicService;
+
+    /** Подборки событий */
+
+    @GetMapping("/compilations")
+    public List<CompilationDto> getCompilations(
+            @RequestParam(required = false) @NotNull Boolean pinned,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
+        return publicService.getCompilations(pinned, from, size);
+    }
+
+    @GetMapping("/compilations/{compId}")
+    public CompilationDto getCompilationById(@PathVariable @Positive Integer compId) {
+        return publicService.getCompilationById(compId);
+    }
+
+    /** Категории */
+
+    @GetMapping("/categories")
+    public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                           @RequestParam(defaultValue = "10") @Positive Integer size) {
+        return publicService.getCategories(from, size);
+    }
+
+    @GetMapping("/categories/{catId}")
+    public CategoryDto getCategoryById(@PathVariable @Positive Integer catId) {
+        return publicService.getCategoryById(catId);
+    }
+
+    /** События */
 
     @GetMapping("/events")
     public List<EventShortDto> getEventsWithFiltering(@RequestParam(required = false) String text,
@@ -52,29 +82,5 @@ public class PublicController {
                                           HttpServletRequest servletRequest) {
 
         return publicService.getEventForPublic(id, servletRequest);
-    }
-
-    @GetMapping("/categories")
-    public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-                                           @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return publicService.getCategories(from, size);
-    }
-
-    @GetMapping("/categories/{catId}")
-    public CategoryDto getCategoryById(@PathVariable @Positive Integer catId) {
-        return publicService.getCategoryById(catId);
-    }
-
-    @GetMapping("/compilations/{compId}")
-    public CompilationDto getCompilationById(@PathVariable @Positive Integer compId) {
-        return publicService.getCompilationById(compId);
-    }
-
-    @GetMapping("/compilations")
-    public List<CompilationDto> getCompilations(
-            @RequestParam(required = false) @NotNull Boolean pinned,
-            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-            @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return publicService.getCompilations(pinned, from, size);
     }
 }

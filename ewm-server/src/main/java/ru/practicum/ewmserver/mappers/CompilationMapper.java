@@ -1,7 +1,7 @@
 package ru.practicum.ewmserver.mappers;
 
-import ru.practicum.ewmserver.dto.CompilationDto;
-import ru.practicum.ewmserver.dto.NewCompilationDto;
+import ru.practicum.ewmserver.dto.compilation.CompilationDto;
+import ru.practicum.ewmserver.dto.compilation.NewCompilationDto;
 import ru.practicum.ewmserver.model.Compilation;
 import ru.practicum.ewmserver.model.Event;
 

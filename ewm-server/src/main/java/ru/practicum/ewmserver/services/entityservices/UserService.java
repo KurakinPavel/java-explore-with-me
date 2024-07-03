@@ -6,14 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewmserver.dto.UserDto;
-import ru.practicum.ewmserver.dto.UserShortDto;
+import ru.practicum.ewmserver.dto.user.UserDto;
 import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
 import ru.practicum.ewmserver.mappers.UserMapper;
 import ru.practicum.ewmserver.model.User;
 import ru.practicum.ewmserver.repositories.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

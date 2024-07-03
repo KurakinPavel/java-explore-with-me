@@ -9,11 +9,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewmserver.dto.EventFullDto;
-import ru.practicum.ewmserver.dto.EventShortDto;
+import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.event.EventShortDto;
 import ru.practicum.ewmserver.dto.MomentFormatter;
-import ru.practicum.ewmserver.dto.NewEventDto;
-import ru.practicum.ewmserver.dto.UpdateEventRequest;
+import ru.practicum.ewmserver.dto.event.NewEventDto;
+import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
 import ru.practicum.ewmserver.enums.AdminStateAction;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.enums.SortType;
@@ -190,7 +190,7 @@ public class EventService {
         return statistic;
     }
 
-    public List<EventShortDto> getEventsWithFiltering(SearchParametersUsersPublic searchParametersUsersPublic,
+    public List<EventShortDto> getEventsWithFilteringForPublic(SearchParametersUsersPublic searchParametersUsersPublic,
                                                       PresentationParameters presentationParameters,
                                                       HttpServletRequest servletRequest) {
         statsServerClient.postHit(new HitDto(0,
@@ -273,7 +273,7 @@ public class EventService {
         return eventFullDto;
     }
 
-    public EventFullDto getEventOfUser(int userId, int eventId) {
+    public EventFullDto getEventOfUserForPrivate(int userId, int eventId) {
         Event event = getEvent(eventId);
         if (event.getInitiator().getId() != userId) {
             throw new EventValidationException("Нельзя просматривать чужие события");

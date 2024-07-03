@@ -6,10 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewmserver.dto.CompilationDto;
+import ru.practicum.ewmserver.dto.compilation.CompilationDto;
 import ru.practicum.ewmserver.mappers.CompilationMapper;
 import ru.practicum.ewmserver.model.Compilation;
-import ru.practicum.ewmserver.model.User;
 import ru.practicum.ewmserver.repositories.CompilationRepository;
 
 import java.util.List;

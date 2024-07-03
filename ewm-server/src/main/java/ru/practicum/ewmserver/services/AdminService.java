@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewmserver.dto.CategoryDto;
-import ru.practicum.ewmserver.dto.CompilationDto;
-import ru.practicum.ewmserver.dto.EventFullDto;
-import ru.practicum.ewmserver.dto.NewCompilationDto;
-import ru.practicum.ewmserver.dto.UpdateEventRequest;
-import ru.practicum.ewmserver.dto.UserDto;
+import ru.practicum.ewmserver.dto.category.CategoryDto;
+import ru.practicum.ewmserver.dto.compilation.CompilationDto;
+import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.compilation.NewCompilationDto;
+import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
+import ru.practicum.ewmserver.dto.user.UserDto;
 import ru.practicum.ewmserver.mappers.CompilationMapper;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.model.Compilation;
@@ -21,7 +21,6 @@ import ru.practicum.ewmserver.services.entityservices.CompilationService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
 
-import javax.servlet.ServletRequest;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,39 +35,11 @@ public class AdminService {
     private final EventService eventService;
     private final CompilationService compilationService;
 
-    @Transactional
-    public UserDto save(UserDto userDto) {
-        return userService.save(userDto);
-    }
-
-    @Transactional(readOnly = true)
-    public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
-        return userService.getUsers(ids, from, size);
-    }
+    /** Категории */
 
     @Transactional
-    public CategoryDto save(CategoryDto categoryDto) {
+    public CategoryDto saveCategory(CategoryDto categoryDto) {
         return categoryService.save(categoryDto);
-    }
-
-    @Transactional
-    public CategoryDto update(int catId, CategoryDto categoryDto) {
-        return categoryService.update(catId, categoryDto);
-    }
-
-    @Transactional
-    public EventFullDto update(int eventId, UpdateEventRequest updateEventRequest) {
-        Category category = null;
-        if (updateEventRequest.getCategory() != null) {
-            category = categoryService.getCategory(updateEventRequest.getCategory());
-        }
-        return eventService.updateByAdmin(eventId, updateEventRequest, category);
-    }
-
-    @Transactional(readOnly = true)
-    public List<EventFullDto> getEventsWithFilteringForAdmin(SearchParametersAdmin searchParametersAdmin,
-                                                             PresentationParameters presentationParameters) {
-        return eventService.getEventsWithFilteringForAdmin(searchParametersAdmin, presentationParameters);
     }
 
     @Transactional
@@ -77,14 +48,45 @@ public class AdminService {
     }
 
     @Transactional
+    public CategoryDto updateCategory(int catId, CategoryDto categoryDto) {
+        return categoryService.update(catId, categoryDto);
+    }
+
+    /** События */
+
+    @Transactional(readOnly = true)
+    public List<EventFullDto> getEventsWithFilteringForAdmin(SearchParametersAdmin searchParametersAdmin,
+                                                             PresentationParameters presentationParameters) {
+        return eventService.getEventsWithFilteringForAdmin(searchParametersAdmin, presentationParameters);
+    }
+
+    @Transactional
+    public EventFullDto updateEvent(int eventId, UpdateEventRequest updateEventRequest) {
+        Category category = null;
+        if (updateEventRequest.getCategory() != null) {
+            category = categoryService.getCategory(updateEventRequest.getCategory());
+        }
+        return eventService.updateByAdmin(eventId, updateEventRequest, category);
+    }
+
+    /** Пользователи */
+
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
+        return userService.getUsers(ids, from, size);
+    }
+
+    @Transactional
+    public UserDto saveUser(UserDto userDto) {
+        return userService.save(userDto);
+    }
+
+    @Transactional
     public void deleteUser(int userId) {
         userService.deleteUser(userId);
     }
 
-    @Transactional
-    public void deleteCompilation(int compId) {
-        compilationService.deleteCompilation(compId);
-    }
+    /** Подборки событий */
 
     @Transactional
     public CompilationDto saveCompilation(NewCompilationDto newCompilationDto) {
@@ -98,6 +100,11 @@ public class AdminService {
         Set<Event> eventsForCompilation = new HashSet<>(eventService.getEventsByIds(eventsIds));
         Compilation compilation = CompilationMapper.toCompilation(newCompilationDto, eventsForCompilation);
         return CompilationMapper.toCompilationDto(compilationService.saveCompilation(compilation));
+    }
+
+    @Transactional
+    public void deleteCompilation(int compId) {
+        compilationService.deleteCompilation(compId);
     }
 
     @Transactional

@@ -1,40 +1,32 @@
-package ru.practicum.ewmserver.dto;
+package ru.practicum.ewmserver.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
+import ru.practicum.ewmserver.dto.category.CategoryDto;
+import ru.practicum.ewmserver.dto.user.UserShortDto;
 import ru.practicum.ewmserver.model.Location;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-public class NewEventDto {
+public class EventFullDto {
     protected Integer id;
-    @NotBlank
-    @Size(min = 20, max = 2000)
     protected String annotation;
-    protected Integer category;
-    @NotBlank
-    @Size(min = 20, max = 7000)
+    protected CategoryDto category;
+    protected Integer confirmedRequests;
+    protected String createdOn;
     protected String description;
-    @NotBlank
     protected String eventDate;
-    @NotNull
+    protected UserShortDto initiator;
     protected Location location;
     protected Boolean paid;
-    @PositiveOrZero
     protected int participantLimit;
+    protected String publishedOn;
     protected Boolean requestModeration;
-    @NotBlank
-    @Size(min = 3, max = 120)
+    protected String state;
     protected String title;
+    protected int views;
 }

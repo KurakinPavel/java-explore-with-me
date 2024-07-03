@@ -3,7 +3,6 @@ package ru.practicum.ewmserver.enums;
 import java.util.Optional;
 
 public enum SortType {
-
     EVENT_DATE, VIEWS;
 
     public static Optional<SortType> from(String stringStateAction) {

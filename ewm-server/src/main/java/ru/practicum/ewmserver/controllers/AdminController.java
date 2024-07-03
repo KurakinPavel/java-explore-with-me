@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.ewmserver.dto.CategoryDto;
-import ru.practicum.ewmserver.dto.CompilationDto;
-import ru.practicum.ewmserver.dto.EventFullDto;
-import ru.practicum.ewmserver.dto.NewCompilationDto;
-import ru.practicum.ewmserver.dto.UpdateEventRequest;
-import ru.practicum.ewmserver.dto.UserDto;
+import ru.practicum.ewmserver.dto.category.CategoryDto;
+import ru.practicum.ewmserver.dto.compilation.CompilationDto;
+import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.compilation.NewCompilationDto;
+import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
+import ru.practicum.ewmserver.dto.user.UserDto;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersAdmin;
@@ -38,41 +38,30 @@ import java.util.List;
 public class AdminController {
     private final AdminService adminService;
 
-    @PostMapping("/users")
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserDto save(@RequestBody @Valid UserDto userDto) {
-        log.info("Контроллер админа получил запрос на добавление нового пользователя");
-        return adminService.save(userDto);
-    }
-
-    @GetMapping("/users")
-    public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
-                            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
-                            @RequestParam(defaultValue = "10") @Positive Integer size) {
-        log.info("Контроллер админа получил запрос на вывод списка пользователей");
-        return adminService.getUsers(ids, from, size);
-    }
+    /** Категории */
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryDto save(@RequestBody @Valid CategoryDto categoryDto) {
+    public CategoryDto saveCategory(@RequestBody @Valid CategoryDto categoryDto) {
         log.info("Контроллер админа получил запрос на добавление новой категории");
-        return adminService.save(categoryDto);
+        return adminService.saveCategory(categoryDto);
+    }
+
+    @DeleteMapping("/categories/{catId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCategory(@PathVariable @Positive Integer catId) {
+        log.info("Контроллер админа получил запрос на удаление категории с id = {}", catId);
+        adminService.deleteCategory(catId);
     }
 
     @PatchMapping("/categories/{catId}")
-    public CategoryDto update(@PathVariable Integer catId,
-                              @RequestBody @Valid CategoryDto categoryDto) {
+    public CategoryDto updateCategory(@PathVariable Integer catId,
+                                      @RequestBody @Valid CategoryDto categoryDto) {
         log.info("Контроллер админа получил запрос на обновление Category id = {}", catId);
-        return adminService.update(catId, categoryDto);
+        return adminService.updateCategory(catId, categoryDto);
     }
 
-    @PatchMapping("/events/{eventId}")
-    public EventFullDto update(@PathVariable Integer eventId,
-                               @RequestBody @Valid UpdateEventRequest updateEventRequest) {
-        log.info("Контроллер админа получил запрос на обновление Event id = {}", eventId);
-        return adminService.update(eventId, updateEventRequest);
-    }
+    /** События */
 
     @GetMapping("/events")
     public List<EventFullDto> getEventsWithFilteringForAdmin(
@@ -90,11 +79,28 @@ public class AdminController {
         return adminService.getEventsWithFilteringForAdmin(searchParametersAdmin, presentationParameters);
     }
 
-    @DeleteMapping("/categories/{catId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCategory(@PathVariable @Positive Integer catId) {
-        log.info("Контроллер админа получил запрос на удаление категории с id = {}", catId);
-        adminService.deleteCategory(catId);
+    @PatchMapping("/events/{eventId}")
+    public EventFullDto updateEvent(@PathVariable Integer eventId,
+                               @RequestBody @Valid UpdateEventRequest updateEventRequest) {
+        log.info("Контроллер админа получил запрос на обновление Event id = {}", eventId);
+        return adminService.updateEvent(eventId, updateEventRequest);
+    }
+
+    /** Пользователи */
+
+    @GetMapping("/users")
+    public List<UserDto> getUsers(@RequestParam(required = false) List<Integer> ids,
+                                  @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                  @RequestParam(defaultValue = "10") @Positive Integer size) {
+        log.info("Контроллер админа получил запрос на вывод списка пользователей");
+        return adminService.getUsers(ids, from, size);
+    }
+
+    @PostMapping("/users")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto saveUser(@RequestBody @Valid UserDto userDto) {
+        log.info("Контроллер админа получил запрос на добавление нового пользователя");
+        return adminService.saveUser(userDto);
     }
 
     @DeleteMapping("/users/{userId}")
@@ -104,18 +110,20 @@ public class AdminController {
         adminService.deleteUser(userId);
     }
 
-    @DeleteMapping("/compilations/{compId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCompilation(@PathVariable @Positive Integer compId) {
-        log.info("Контроллер админа получил запрос на удаление подборки с id = {}", compId);
-        adminService.deleteCompilation(compId);
-    }
+    /** Подборки событий */
 
     @PostMapping("/compilations")
     @ResponseStatus(HttpStatus.CREATED)
     public CompilationDto saveCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
         log.info("Контроллер админа получил запрос на добавление новой подборки событий");
         return adminService.saveCompilation(newCompilationDto);
+    }
+
+    @DeleteMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCompilation(@PathVariable @Positive Integer compId) {
+        log.info("Контроллер админа получил запрос на удаление подборки с id = {}", compId);
+        adminService.deleteCompilation(compId);
     }
 
     @PatchMapping("/compilations/{compId}")

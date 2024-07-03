@@ -11,7 +11,7 @@ import ru.practicum.ewmserver.model.Compilation;
 @Repository
 public interface CompilationRepository extends JpaRepository<Compilation, Integer> {
 
-    @Query( "SELECT c FROM Compilation AS c " +
+    @Query("SELECT c FROM Compilation AS c " +
             "WHERE (CAST(c.pinned AS boolean) = :pinned OR :pinned IS NULL)")
     Page<Compilation> findByPinnedForPublic(@Param("pinned") Boolean pinned,
                                             Pageable pageable);

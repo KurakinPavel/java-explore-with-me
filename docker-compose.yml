@@ -29,7 +29,7 @@ services:
       - stats-server
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
-      - STATS_SERVER_URL=http://stats-server:9090
+      - STAT_SERVER_URL=http://stats-server:9090
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
 

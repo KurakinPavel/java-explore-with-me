@@ -2,6 +2,8 @@ version: '3.1'
 services:
   stats-server:
     build: ./stats-server/stats-server-service
+    image: statistic-server
+    container_name: statistic-server-cont
     ports:
       - "9090:9090"
     depends_on:
@@ -13,6 +15,7 @@ services:
 
   stats-db:
     image: postgres:14-alpine
+    container_name: statistic-db-cont
     ports:
       - "5432:5432"
     environment:
@@ -22,10 +25,25 @@ services:
 
   ewm-service:
     build: ./ewm-server
+    image: ewm-server
+    container_name: ewm-server-cont
     ports:
       - "8080:8080"
     depends_on:
+      - stats-server
       - ewm-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/exploreit
+      - STATISTIC_SERVER_URL=http://stats-server:9090
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
 
   ewm-db:
     image: postgres:14-alpine
+    container_name: ewm-db-cont
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=exploreit
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root

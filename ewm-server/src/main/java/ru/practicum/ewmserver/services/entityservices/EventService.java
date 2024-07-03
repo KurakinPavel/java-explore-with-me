@@ -81,7 +81,7 @@ public class EventService {
                 updatingEvent.setState(EventState.CANCELED);
             }
         }
-        return update(updatingEvent, updateEventRequest, category, 1);
+        return update(updatingEvent, updateEventRequest, category, MomentFormatter.UPDATE_TIME_LIMIT_ADMIN);
     }
 
     public EventFullDto updateByUser(int userId, int eventId, UpdateEventRequest updateEventRequest, Category category) {
@@ -101,7 +101,7 @@ public class EventService {
                 updatingEvent.setState(EventState.CANCELED);
             }
         }
-        return update(updatingEvent, updateEventRequest, category, 2);
+        return update(updatingEvent, updateEventRequest, category, MomentFormatter.UPDATE_TIME_LIMIT_USER);
     }
 
     private EventFullDto update(Event updatingEvent, UpdateEventRequest updateEventRequest, Category category, int timeLimit) {
@@ -115,8 +115,10 @@ public class EventService {
             updatingEvent.setDescription(updateEventRequest.getDescription());
         }
         if (updateEventRequest.getEventDate() != null) {
-            if (LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT).isBefore(LocalDateTime.now().plusHours(timeLimit))) {
-                throw new EventTimeValidationException("Дата события не может быть раньше, чем через " + timeLimit + " ч. от текущего момента");
+            if (LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT)
+                    .isBefore(LocalDateTime.now().plusHours(timeLimit))) {
+                throw new EventTimeValidationException("Дата события не может быть раньше, чем через "
+                        + timeLimit + " ч. от текущего момента");
             }
             updatingEvent.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT));
         }
@@ -167,8 +169,8 @@ public class EventService {
     }
 
     private Map<Integer, Integer> getHitsStatistic(String[] uris) {
-        String start = LocalDateTime.now().minusYears(100).format(MomentFormatter.DATE_TIME_FORMAT);
-        String end = LocalDateTime.now().plusYears(100).format(MomentFormatter.DATE_TIME_FORMAT);
+        String start = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL).format(MomentFormatter.DATE_TIME_FORMAT);
+        String end = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL).format(MomentFormatter.DATE_TIME_FORMAT);
         ResponseEntity<Object> response = statsServerClient.getHitsStatistics(start, end, uris, true);
         System.out.println("Получил в ответ: " + response);
         Map<Integer, Integer> statistic = new HashMap<>();
@@ -178,10 +180,8 @@ public class EventService {
             });
             if (!stats.isEmpty()) {
                 for (StatsDtoOut statsDtoOut : stats) {
-                    if (statsDtoOut.getUri().length() > 7) {
-                        statistic.put(Integer.parseInt(statsDtoOut.getUri().substring(8)),
-                                Integer.parseInt(String.valueOf(statsDtoOut.getHits())));
-                        log.info("Вставляю в мапу: {}, {}", Integer.parseInt(statsDtoOut.getUri().substring(8)),
+                    if (statsDtoOut.getUri().length() > "/events".length()) {
+                        statistic.put(Integer.parseInt(statsDtoOut.getUri().substring("/events/".length())),
                                 Integer.parseInt(String.valueOf(statsDtoOut.getHits())));
                     }
                 }
@@ -212,8 +212,8 @@ public class EventService {
         if (searchParametersUsersPublic.getPaid() != null) {
             paid = searchParametersUsersPublic.getPaid();
         }
-        LocalDateTime rangeStart = LocalDateTime.now().minusYears(1000);
-        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(1000);
+        LocalDateTime rangeStart = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL);
+        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL);
         if (searchParametersUsersPublic.getRangeStart() == null && searchParametersUsersPublic.getRangeEnd() == null) {
             rangeStart = LocalDateTime.now();
         } else if (searchParametersUsersPublic.getRangeStart() != null && searchParametersUsersPublic.getRangeEnd() == null) {
@@ -305,8 +305,8 @@ public class EventService {
         if (searchParametersAdmin.getCategories() != null) {
             categories = searchParametersAdmin.getCategories();
         }
-        LocalDateTime rangeStart = LocalDateTime.now().minusYears(1000);
-        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(1000);
+        LocalDateTime rangeStart = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL);
+        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL);
         if (searchParametersAdmin.getRangeStart() == null && searchParametersAdmin.getRangeEnd() == null) {
             rangeStart = LocalDateTime.now();
         } else if (searchParametersAdmin.getRangeStart() != null && searchParametersAdmin.getRangeEnd() == null) {

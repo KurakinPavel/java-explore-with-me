@@ -9,7 +9,7 @@ import ru.practicum.statserverclient.client.StatsServerClient;
 @Configuration
 public class StatsServerClientConfiguration {
     @Bean
-    public StatsServerClient statsServerClient(@Value("${stats.server.url}") String statisticServerUrl, RestTemplateBuilder builder) {
+    public StatsServerClient statsServerClient(@Value("http://localhost:9090") String statisticServerUrl, RestTemplateBuilder builder) {
         return new StatsServerClient(statisticServerUrl, builder);
     }
 }

@@ -18,9 +18,8 @@ import ru.practicum.ewmserver.enums.AdminStateAction;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.enums.SortType;
 import ru.practicum.ewmserver.enums.UserStateAction;
-import ru.practicum.ewmserver.exceptions.custom.EventTimeValidationException;
-import ru.practicum.ewmserver.exceptions.custom.EventValidationException;
-import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
+import ru.practicum.ewmserver.exceptions.custom.ConflictValidationException;
+import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
 import ru.practicum.ewmserver.mappers.EventMapper;
 import ru.practicum.ewmserver.mappers.LocationMapper;
 import ru.practicum.ewmserver.model.Category;
@@ -33,7 +32,6 @@ import ru.practicum.ewmserver.searchparams.SearchParametersAdmin;
 import ru.practicum.ewmserver.searchparams.SearchParametersUsersPublic;
 import ru.practicum.statserverclient.client.StatsServerClient;
 import ru.practicum.statsserverdto.dto.HitDto;
-import ru.practicum.statsserverdto.dto.StartEndValidationException;
 import ru.practicum.statsserverdto.dto.StatsDtoOut;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,12 +73,12 @@ public class EventService {
                     new IllegalArgumentException("Unknown state: " + updateEventRequest.getStateAction()));
             if (adminStateAction.equals(AdminStateAction.PUBLISH_EVENT)) {
                 if (!updatingEvent.getState().equals(EventState.PENDING)) {
-                    throw new EventValidationException("Можно публиковать только события в ожидании публикации");
+                    throw new ConflictValidationException("Можно публиковать только события в ожидании публикации");
                 }
                 updatingEvent.setState(EventState.PUBLISHED);
             } else {
                 if (!updatingEvent.getState().equals(EventState.PENDING)) {
-                    throw new EventValidationException("Можно отклонить только события в ожидании публикации");
+                    throw new ConflictValidationException("Можно отклонить только события в ожидании публикации");
                 }
                 updatingEvent.setState(EventState.CANCELED);
             }
@@ -91,10 +89,10 @@ public class EventService {
     public EventFullDto updateByUser(int userId, int eventId, UpdateEventRequest updateEventRequest, Category category) {
         Event updatingEvent = getEvent(eventId);
         if (updatingEvent.getInitiator().getId() != userId) {
-            throw new UserValidationException("Событие может редактировать только инициатор");
+            throw new BadRequestValidationException("Событие может редактировать только инициатор");
         }
         if (updatingEvent.getState().equals(EventState.PUBLISHED)) {
-            throw new EventValidationException("Нельзя изменить опубликованное событие");
+            throw new ConflictValidationException("Нельзя изменить опубликованное событие");
         }
         if (updateEventRequest.getStateAction() != null) {
             UserStateAction userStateAction = UserStateAction.from(updateEventRequest.getStateAction()).orElseThrow(() ->
@@ -121,7 +119,7 @@ public class EventService {
         if (updateEventRequest.getEventDate() != null) {
             if (LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT)
                     .isBefore(LocalDateTime.now().plusHours(timeLimit))) {
-                throw new EventTimeValidationException("Дата события не может быть раньше, чем через "
+                throw new BadRequestValidationException("Дата события не может быть раньше, чем через "
                         + timeLimit + " ч. от текущего момента");
             }
             updatingEvent.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT));
@@ -231,7 +229,7 @@ public class EventService {
             rangeStart = searchParametersUsersPublic.getRangeStart();
             rangeEnd = searchParametersUsersPublic.getRangeEnd();
             if (rangeStart.isAfter(rangeEnd)) {
-                throw new StartEndValidationException("Переданы некорректные даты начала и окончания диапазона поиска");
+                throw new BadRequestValidationException("Переданы некорректные даты начала и окончания диапазона поиска");
             }
         }
         Page<Event> events;
@@ -283,7 +281,7 @@ public class EventService {
     public EventFullDto getEventOfUserForPrivate(int userId, int eventId) {
         Event event = getEvent(eventId);
         if (event.getInitiator().getId() != userId) {
-            throw new EventValidationException("Нельзя просматривать чужие события");
+            throw new ConflictValidationException("Нельзя просматривать чужие события");
         }
         List<String> urisInList = new ArrayList<>();
         urisInList.add("/events/" + eventId);
@@ -324,7 +322,7 @@ public class EventService {
             rangeStart = searchParametersAdmin.getRangeStart();
             rangeEnd = searchParametersAdmin.getRangeEnd();
             if (rangeStart.isAfter(rangeEnd)) {
-                throw new StartEndValidationException("Переданы некорректные даты начала и окончания диапазона поиска");
+                throw new BadRequestValidationException("Переданы некорректные даты начала и окончания диапазона поиска");
             }
         }
         Page<Event> events;

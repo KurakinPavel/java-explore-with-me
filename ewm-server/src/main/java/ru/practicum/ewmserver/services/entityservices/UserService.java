@@ -7,7 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewmserver.dto.user.UserDto;
-import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
+import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
 import ru.practicum.ewmserver.mappers.UserMapper;
 import ru.practicum.ewmserver.model.User;
 import ru.practicum.ewmserver.repositories.UserRepository;
@@ -24,7 +24,7 @@ public class UserService {
     public UserDto save(UserDto userDto) {
         if ((userDto.getName() == null) || (userDto.getName().isBlank()) || userDto.getEmail() == null
                 || userDto.getEmail().isBlank()) {
-            throw new UserValidationException("Переданы некорректные данные для создания user");
+            throw new BadRequestValidationException("Переданы некорректные данные для создания user");
         }
         return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
     }

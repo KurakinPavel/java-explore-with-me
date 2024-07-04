@@ -6,7 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewmserver.dto.category.CategoryDto;
-import ru.practicum.ewmserver.exceptions.custom.CategoryValidationException;
+import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
 import ru.practicum.ewmserver.mappers.CategoryMapper;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.repositories.CategoryRepository;
@@ -22,7 +22,7 @@ public class CategoryService {
 
     public CategoryDto save(CategoryDto categoryDto) {
         if ((categoryDto.getName() == null) || (categoryDto.getName().isBlank())) {
-            throw new CategoryValidationException("Переданы некорректные данные для создания категории");
+            throw new BadRequestValidationException("Переданы некорректные данные для создания категории");
         }
         return CategoryMapper.toCategoryDto(categoryRepository.save(CategoryMapper.toCategory(categoryDto)));
     }
@@ -30,7 +30,7 @@ public class CategoryService {
     public CategoryDto update(int catId, CategoryDto categoryDto) {
         Category updatingCategory = getCategory(catId);
         if ((categoryDto.getName() == null) || (categoryDto.getName().isBlank())) {
-            throw new CategoryValidationException("Переданы некорректные данные для создания категории");
+            throw new BadRequestValidationException("Переданы некорректные данные для создания категории");
         }
         if (updatingCategory.getName().equals(categoryDto.getName())) {
             categoryDto.setId(updatingCategory.getId());

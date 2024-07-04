@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewmserver.dto.request.ParticipationRequestDto;
 import ru.practicum.ewmserver.enums.ParticipationRequestStatus;
-import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
+import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
 import ru.practicum.ewmserver.mappers.ParticipationRequestMapper;
 import ru.practicum.ewmserver.model.Event;
 import ru.practicum.ewmserver.model.ParticipationRequest;
@@ -40,7 +40,7 @@ public class ParticipationRequestService {
     public ParticipationRequestDto cancel(int userId, int requestId) {
         ParticipationRequest canceledParticipationRequest = participationRequestRepository.getReferenceById(requestId);
         if (canceledParticipationRequest.getRequester().getId() != userId) {
-            throw new UserValidationException("Нельзя отменять чужие запросы");
+            throw new BadRequestValidationException("Нельзя отменять чужие запросы");
         }
         canceledParticipationRequest.setStatus(ParticipationRequestStatus.CANCELED);
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(canceledParticipationRequest));

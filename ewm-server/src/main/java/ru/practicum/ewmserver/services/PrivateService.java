@@ -14,9 +14,8 @@ import ru.practicum.ewmserver.dto.request.ParticipationRequestDto;
 import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.enums.ParticipationRequestStatus;
-import ru.practicum.ewmserver.exceptions.custom.EventTimeValidationException;
-import ru.practicum.ewmserver.exceptions.custom.ParticipationRequestValidationException;
-import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
+import ru.practicum.ewmserver.exceptions.custom.ConflictValidationException;
+import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
 import ru.practicum.ewmserver.mappers.ParticipationRequestMapper;
 import ru.practicum.ewmserver.mappers.UserMapper;
 import ru.practicum.ewmserver.model.Category;
@@ -54,7 +53,7 @@ public class PrivateService {
     public EventFullDto saveEvent(int userId, NewEventDto newEventDto) {
         if (LocalDateTime.parse(newEventDto.getEventDate(), MomentFormatter.DATE_TIME_FORMAT)
                 .isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new EventTimeValidationException("Дата события не может быть раньше, чем через два часа от текущего момента");
+            throw new BadRequestValidationException("Дата события не может быть раньше, чем через два часа от текущего момента");
         }
         User initiator = userService.getUser(userId);
         Category category = categoryService.getCategory(newEventDto.getCategory());
@@ -81,7 +80,7 @@ public class PrivateService {
     public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(int userId, int eventId) {
         int initiatorId = eventService.getEvent(eventId).getInitiator().getId();
         if (userId != initiatorId) {
-            throw new UserValidationException("Событий пользователя не найдено");
+            throw new BadRequestValidationException("Событий пользователя не найдено");
         }
         return participationRequestService.getRequestsForParticipationInUserEvent(eventId);
     }
@@ -102,14 +101,14 @@ public class PrivateService {
             return new EventRequestStatusUpdateResult(participationRequestsDto, new ArrayList<>());
         }
         if (event.getConfirmedRequests() == event.getParticipantLimit()) {
-            throw new ParticipationRequestValidationException("Достигнут предел количества участников. Заявки отклонены");
+            throw new ConflictValidationException("Достигнут предел количества участников. Заявки отклонены");
         }
         List<ParticipationRequest> updatedParticipationRequests = new ArrayList<>();
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
         for (ParticipationRequest participationRequest : participationRequests) {
             if (!participationRequest.getStatus().equals(ParticipationRequestStatus.PENDING)) {
-                throw new ParticipationRequestValidationException("Статус заявок можно изменить только у " +
+                throw new ConflictValidationException("Статус заявок можно изменить только у " +
                         "находящихся в режиме ожидания. Заявки отклонены");
             }
             if (event.getParticipantLimit() > event.getConfirmedRequests() &&
@@ -144,17 +143,17 @@ public class PrivateService {
         User requester = userService.getUser(requesterId);
         Event event = eventService.getEvent(eventId);
         if (requesterId == event.getInitiator().getId()) {
-            throw new ParticipationRequestValidationException("Инициатор не может делать запрос на участие в своём событии");
+            throw new ConflictValidationException("Инициатор не может делать запрос на участие в своём событии");
         }
         ParticipationRequest participationRequest = participationRequestService.getRequestByEventAndRequester(eventId, requesterId);
         if (participationRequest != null) {
-            throw new ParticipationRequestValidationException("Повторный запрос подать нельзя");
+            throw new ConflictValidationException("Повторный запрос подать нельзя");
         }
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new ParticipationRequestValidationException("Событие не опубликовано");
+            throw new ConflictValidationException("Событие не опубликовано");
         }
         if (event.getParticipantLimit() != 0 && event.getConfirmedRequests() == event.getParticipantLimit()) {
-            throw new ParticipationRequestValidationException("Достигнут предел количества участников");
+            throw new ConflictValidationException("Достигнут предел количества участников");
         }
         ParticipationRequestStatus participationRequestStatus = ParticipationRequestStatus.PENDING;
         if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {

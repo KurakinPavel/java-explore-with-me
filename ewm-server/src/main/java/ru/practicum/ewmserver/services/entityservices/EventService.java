@@ -22,8 +22,10 @@ import ru.practicum.ewmserver.exceptions.custom.EventTimeValidationException;
 import ru.practicum.ewmserver.exceptions.custom.EventValidationException;
 import ru.practicum.ewmserver.exceptions.custom.UserValidationException;
 import ru.practicum.ewmserver.mappers.EventMapper;
+import ru.practicum.ewmserver.mappers.LocationMapper;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.model.Event;
+import ru.practicum.ewmserver.model.Location;
 import ru.practicum.ewmserver.model.User;
 import ru.practicum.ewmserver.repositories.EventRepository;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
@@ -51,9 +53,11 @@ public class EventService {
     private final EventRepository eventRepository;
     private final StatsServerClient statsServerClient;
     private final ObjectMapper objectMapper;
+    private final LocationService locationService;
 
     public EventFullDto save(NewEventDto newEventDto, User initiator, Category category) {
-        return EventMapper.toEventFullDto(eventRepository.save(EventMapper.toEvent(newEventDto, initiator, category)));
+        Location location = locationService.saveLocation(LocationMapper.toLocation(newEventDto.getLocation()));
+        return EventMapper.toEventFullDto(eventRepository.save(EventMapper.toEvent(newEventDto, initiator, category, location)));
     }
 
     public List<Event> getEventsByIds(List<Integer> eventIds) {
@@ -123,7 +127,10 @@ public class EventService {
             updatingEvent.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT));
         }
         if (updateEventRequest.getLocation() != null) {
-            updatingEvent.setLocation(updateEventRequest.getLocation());
+            Location locationForUpdate = LocationMapper.toLocation(updateEventRequest.getLocation());
+            locationForUpdate.setId(updatingEvent.getLocation().getId());
+            locationService.saveLocation(locationForUpdate);
+            updatingEvent.setLocation(locationForUpdate);
         }
         if (updateEventRequest.getPaid() != null) {
             updatingEvent.setPaid(updateEventRequest.getPaid());

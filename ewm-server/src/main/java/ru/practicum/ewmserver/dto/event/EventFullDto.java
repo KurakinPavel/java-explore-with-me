@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.ewmserver.dto.LocationDto;
 import ru.practicum.ewmserver.dto.category.CategoryDto;
 import ru.practicum.ewmserver.dto.user.UserShortDto;
-import ru.practicum.ewmserver.model.Location;
 
 @Getter
 @Setter
@@ -21,7 +21,7 @@ public class EventFullDto {
     protected String description;
     protected String eventDate;
     protected UserShortDto initiator;
-    protected Location location;
+    protected LocationDto location;
     protected Boolean paid;
     protected int participantLimit;
     protected String publishedOn;

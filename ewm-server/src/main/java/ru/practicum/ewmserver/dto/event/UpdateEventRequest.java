@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import ru.practicum.ewmserver.model.Location;
+import ru.practicum.ewmserver.dto.LocationDto;
 
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
@@ -22,7 +22,7 @@ public class UpdateEventRequest {
     @Size(min = 20, max = 7000)
     protected String description;
     protected String eventDate;
-    protected Location location;
+    protected LocationDto location;
     protected Boolean paid;
     @PositiveOrZero
     protected Integer participantLimit;

@@ -7,13 +7,14 @@ import ru.practicum.ewmserver.dto.event.NewEventDto;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.model.Event;
+import ru.practicum.ewmserver.model.Location;
 import ru.practicum.ewmserver.model.User;
 
 import java.time.LocalDateTime;
 
 public class EventMapper {
 
-    public static Event toEvent(NewEventDto newEventDto, User initiator, Category category) {
+    public static Event toEvent(NewEventDto newEventDto, User initiator, Category category, Location location) {
         return new Event(
                 newEventDto.getId() != null ? newEventDto.getId() : 0,
                 newEventDto.getAnnotation() != null ? newEventDto.getAnnotation() : "",
@@ -22,7 +23,7 @@ public class EventMapper {
                 newEventDto.getDescription() != null ? newEventDto.getDescription() : "",
                 newEventDto.getEventDate() != null ? LocalDateTime.parse(newEventDto.getEventDate(), MomentFormatter.DATE_TIME_FORMAT) : null,
                 initiator,
-                newEventDto.getLocation() != null ? newEventDto.getLocation() : null,
+                location,
                 newEventDto.getPaid() != null ? newEventDto.getPaid() : false,
                 newEventDto.getParticipantLimit() != 0 ? newEventDto.getParticipantLimit() : 0,
                 0,
@@ -43,7 +44,7 @@ public class EventMapper {
                 event.getDescription(),
                 event.getEventDate().format(MomentFormatter.DATE_TIME_FORMAT),
                 UserMapper.toUserShortDto(event.getInitiator()),
-                event.getLocation(),
+                LocationMapper.toLocationDto(event.getLocation()),
                 event.getPaid(),
                 event.getParticipantLimit(),
                 event.getPublishedOn().format(MomentFormatter.DATE_TIME_FORMAT),

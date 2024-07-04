@@ -9,7 +9,6 @@ import org.hibernate.annotations.Type;
 import ru.practicum.ewmserver.enums.EventState;
 
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -49,7 +48,9 @@ public class Event {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "INITIATOR_ID")
     protected User initiator;
-    @Embedded
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JoinColumn(name = "LOCATION_ID")
     protected Location location;
     @Column(nullable = false)
     @Type(type = "org.hibernate.type.NumericBooleanType")

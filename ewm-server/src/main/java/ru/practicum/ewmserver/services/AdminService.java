@@ -3,6 +3,7 @@ package ru.practicum.ewmserver.services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.category.CategoryDto;
 import ru.practicum.ewmserver.dto.compilation.CompilationDto;
@@ -42,7 +43,7 @@ public class AdminService {
         return categoryService.save(categoryDto);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public void deleteCategory(int catId) {
         categoryService.deleteCategory(catId);
     }

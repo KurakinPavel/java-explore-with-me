@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.event.EventFullDto;
 import ru.practicum.ewmserver.dto.event.EventShortDto;
 import ru.practicum.ewmserver.dto.MomentFormatter;
@@ -53,19 +54,23 @@ public class EventService {
     private final ObjectMapper objectMapper;
     private final LocationService locationService;
 
+    @Transactional
     public EventFullDto save(NewEventDto newEventDto, User initiator, Category category) {
         Location location = locationService.saveLocation(LocationMapper.toLocation(newEventDto.getLocation()));
         return EventMapper.toEventFullDto(eventRepository.save(EventMapper.toEvent(newEventDto, initiator, category, location)));
     }
 
+    @Transactional(readOnly = true)
     public List<Event> getEventsByIds(List<Integer> eventIds) {
         return eventRepository.findAllById(eventIds);
     }
 
+    @Transactional
     public void save(Event event) {
         eventRepository.save(event);
     }
 
+    @Transactional
     public EventFullDto updateByAdmin(int eventId, UpdateEventRequest updateEventRequest, Category category) {
         Event updatingEvent = getEvent(eventId);
         if (updateEventRequest.getStateAction() != null) {
@@ -86,6 +91,7 @@ public class EventService {
         return update(updatingEvent, updateEventRequest, category, MomentFormatter.UPDATE_TIME_LIMIT_ADMIN);
     }
 
+    @Transactional
     public EventFullDto updateByUser(int userId, int eventId, UpdateEventRequest updateEventRequest, Category category) {
         Event updatingEvent = getEvent(eventId);
         if (updatingEvent.getInitiator().getId() != userId) {
@@ -106,6 +112,7 @@ public class EventService {
         return update(updatingEvent, updateEventRequest, category, MomentFormatter.UPDATE_TIME_LIMIT_USER);
     }
 
+    /** Вызывается методами EventService, к которым уже применяется Transactional */
     private EventFullDto update(Event updatingEvent, UpdateEventRequest updateEventRequest, Category category, int timeLimit) {
         if (updateEventRequest.getAnnotation() != null) {
             updatingEvent.setAnnotation(updateEventRequest.getAnnotation());
@@ -145,6 +152,7 @@ public class EventService {
         return EventMapper.toEventFullDto(eventRepository.save(updatingEvent));
     }
 
+    @Transactional(readOnly = true)
     public List<EventShortDto> getUserEvents(int userId, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
         Page<Event> events;
@@ -158,6 +166,7 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
+    /** Вызывается методами EventService, к которым уже применяется Transactional */
     private List<EventFullDto> addStatsToEventFullDtoInformation(List<EventFullDto> eventsFullDto) {
         List<String> urisInList = new ArrayList<>();
         for (EventFullDto event : eventsFullDto) {
@@ -173,6 +182,7 @@ public class EventService {
         return eventsFullDto;
     }
 
+    /** Вызывается методами EventService, к которым уже применяется Transactional */
     private Map<Integer, Integer> getHitsStatistic(String[] uris) {
         String start = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL).format(MomentFormatter.DATE_TIME_FORMAT);
         String end = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL).format(MomentFormatter.DATE_TIME_FORMAT);
@@ -195,6 +205,7 @@ public class EventService {
         return statistic;
     }
 
+    @Transactional(readOnly = true)
     public List<EventShortDto> getEventsWithFilteringForPublic(SearchParametersUsersPublic searchParametersUsersPublic,
                                                       PresentationParameters presentationParameters,
                                                       HttpServletRequest servletRequest) {
@@ -257,6 +268,7 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public EventFullDto getEventForPublic(int id, HttpServletRequest servletRequest) {
         Event event = getEvent(id);
         if (event.getState() != EventState.PUBLISHED) {
@@ -278,6 +290,7 @@ public class EventService {
         return eventFullDto;
     }
 
+    @Transactional(readOnly = true)
     public EventFullDto getEventOfUserForPrivate(int userId, int eventId) {
         Event event = getEvent(eventId);
         if (event.getInitiator().getId() != userId) {
@@ -294,6 +307,7 @@ public class EventService {
         return eventFullDto;
     }
 
+    @Transactional(readOnly = true)
     public List<EventFullDto> getEventsWithFilteringForAdmin(SearchParametersAdmin searchParametersAdmin,
                                                              PresentationParameters presentationParameters) {
         Pageable pageable = PageRequest.of(presentationParameters.getFrom() / presentationParameters.getSize(),
@@ -334,6 +348,7 @@ public class EventService {
         return addStatsToEventFullDtoInformation(fullEventsDtoNoViews);
     }
 
+    @Transactional(readOnly = true)
     public Event getEvent(int eventId) {
         return eventRepository.getReferenceById(eventId);
     }

@@ -3,6 +3,7 @@ package ru.practicum.ewmserver.services.entityservices;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.request.ParticipationRequestDto;
 import ru.practicum.ewmserver.enums.ParticipationRequestStatus;
 import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class ParticipationRequestService {
     private final ParticipationRequestRepository participationRequestRepository;
 
+    @Transactional
     public ParticipationRequestDto save(User requester, Event event, ParticipationRequestStatus participationRequestStatus) {
         ParticipationRequest participationRequest = new ParticipationRequest(
                 0,
@@ -33,10 +35,12 @@ public class ParticipationRequestService {
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(participationRequest));
     }
 
+    @Transactional
     public void saveAll(List<ParticipationRequest> updatedParticipationRequests) {
         participationRequestRepository.saveAll(updatedParticipationRequests);
     }
 
+    @Transactional
     public ParticipationRequestDto cancel(int userId, int requestId) {
         ParticipationRequest canceledParticipationRequest = participationRequestRepository.getReferenceById(requestId);
         if (canceledParticipationRequest.getRequester().getId() != userId) {
@@ -46,22 +50,26 @@ public class ParticipationRequestService {
         return ParticipationRequestMapper.toParticipationRequestDto(participationRequestRepository.save(canceledParticipationRequest));
     }
 
+    @Transactional(readOnly = true)
     public List<ParticipationRequestDto> getUserRequests(int userId) {
         return participationRequestRepository.findAllByRequester_Id(userId).stream()
                 .map(ParticipationRequestMapper::toParticipationRequestDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ParticipationRequestDto> getRequestsForParticipationInUserEvent(int eventId) {
         return participationRequestRepository.findAllByEvent_Id(eventId).stream()
                 .map(ParticipationRequestMapper::toParticipationRequestDto)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ParticipationRequest> getRequestByIds(List<Integer> requestIds) {
         return participationRequestRepository.findAllByIdIn(requestIds);
     }
 
+    @Transactional(readOnly = true)
     public ParticipationRequest getRequestByEventAndRequester(int eventId, int requesterId) {
         return participationRequestRepository.findOneByEvent_IdAndRequester_Id(eventId,requesterId);
     }

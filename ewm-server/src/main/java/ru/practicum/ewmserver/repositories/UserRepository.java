@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
-    @Query( "SELECT u FROM User AS u " +
+    @Query("SELECT u FROM User AS u " +
             "WHERE (u.id IN :ids OR :ids IS NULL)")
     Page<User> findUsersForAdmin(@Param("ids") List<Integer> ids, Pageable pageable);
 }

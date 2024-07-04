@@ -17,7 +17,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     Page<Event> findAllByInitiator_Id(int userId, Pageable pageable);
 
-    @Query( "SELECT e FROM Event AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (e.state = :state) " +
                 "AND ((LOWER(e.annotation) LIKE CONCAT('%', :text, '%') " +
                    "OR LOWER(e.description) LIKE CONCAT('%', :text, '%')) OR :text IS NULL) " +
@@ -32,7 +32,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
                                           @Param("start") LocalDateTime rangeStart,
                                           @Param("end") LocalDateTime rangeEnd, Pageable pageable);
 
-    @Query( "SELECT e FROM Event AS e " +
+    @Query("SELECT e FROM Event AS e " +
             "WHERE (e.initiator.id IN :users OR :users IS NULL) " +
                 "AND (e.state IN :states OR :states IS NULL) " +
                 "AND (e.category.id IN :categories OR :categories IS NULL) " +

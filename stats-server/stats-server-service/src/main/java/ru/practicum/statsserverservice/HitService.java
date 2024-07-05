@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.statsserverdto.dto.HitDto;
 import ru.practicum.statsserverdto.dto.StatsDtoOut;
-import ru.practicum.statsserverservice.exceptions.StartEndValidationException;
+import ru.practicum.statsserverdto.dto.StartEndValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;

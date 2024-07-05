@@ -1,4 +1,4 @@
-package ru.practicum.statsserverdto.dto;
+package ru.practicum.ewmserver.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class StatsDtoOut {
-    protected String app;
-    protected String uri;
-    protected Long hits;
+public class LocationDto {
+    protected Integer id;
+    protected Double lat;
+    protected Double lon;
 }

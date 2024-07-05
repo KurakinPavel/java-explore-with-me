@@ -1,4 +1,4 @@
-package ru.practicum.statsserverservice.model;
+package ru.practicum.ewmserver.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,25 +12,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "HITS", schema = "PUBLIC")
+@Table(name = "LOCATIONS", schema = "PUBLIC")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Hit {
+public class Location {
     @Id
-    @Column(name = "HIT_ID", nullable = false)
+    @Column(name = "LOCATION_ID", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected int id;
     @Column(nullable = false)
-    protected String app;
+    protected double lat;
     @Column(nullable = false)
-    protected String uri;
-    @Column(nullable = false)
-    protected String ip;
-    @Column(nullable = false)
-    protected LocalDateTime moment;
+    protected double lon;
 }

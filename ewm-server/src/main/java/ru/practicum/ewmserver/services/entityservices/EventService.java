@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.event.EventFullDto;
 import ru.practicum.ewmserver.dto.event.EventFullDtoWithRating;
 import ru.practicum.ewmserver.dto.event.EventShortDto;
-import ru.practicum.ewmserver.dto.MomentFormatter;
+import ru.practicum.ewmserver.dto.Constants;
 import ru.practicum.ewmserver.dto.event.EventShotDtoWithRating;
 import ru.practicum.ewmserver.dto.event.NewEventDto;
 import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
@@ -90,7 +90,7 @@ public class EventService {
                 updatingEvent.setState(EventState.CANCELED);
             }
         }
-        return update(updatingEvent, updateEventRequest, category, MomentFormatter.UPDATE_TIME_LIMIT_ADMIN);
+        return update(updatingEvent, updateEventRequest, category, Constants.UPDATE_TIME_LIMIT_ADMIN);
     }
 
     @Transactional
@@ -111,7 +111,7 @@ public class EventService {
                 updatingEvent.setState(EventState.CANCELED);
             }
         }
-        return update(updatingEvent, updateEventRequest, category, MomentFormatter.UPDATE_TIME_LIMIT_USER);
+        return update(updatingEvent, updateEventRequest, category, Constants.UPDATE_TIME_LIMIT_USER);
     }
 
     /** Вызывается методами EventService, к которым уже применяется Transactional */
@@ -126,12 +126,12 @@ public class EventService {
             updatingEvent.setDescription(updateEventRequest.getDescription());
         }
         if (updateEventRequest.getEventDate() != null) {
-            if (LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT)
+            if (LocalDateTime.parse(updateEventRequest.getEventDate(), Constants.DATE_TIME_FORMAT)
                     .isBefore(LocalDateTime.now().plusHours(timeLimit))) {
                 throw new BadRequestValidationException("Дата события не может быть раньше, чем через "
                         + timeLimit + " ч. от текущего момента");
             }
-            updatingEvent.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), MomentFormatter.DATE_TIME_FORMAT));
+            updatingEvent.setEventDate(LocalDateTime.parse(updateEventRequest.getEventDate(), Constants.DATE_TIME_FORMAT));
         }
         if (updateEventRequest.getLocation() != null) {
             Location locationForUpdate = LocationMapper.toLocation(updateEventRequest.getLocation());
@@ -186,8 +186,8 @@ public class EventService {
 
     /** Вызывается методами EventService, к которым уже применяется Transactional */
     private Map<Integer, Integer> getHitsStatistic(String[] uris) {
-        String start = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL).format(MomentFormatter.DATE_TIME_FORMAT);
-        String end = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL).format(MomentFormatter.DATE_TIME_FORMAT);
+        String start = LocalDateTime.now().minusYears(Constants.FREE_TIME_INTERVAL).format(Constants.DATE_TIME_FORMAT);
+        String end = LocalDateTime.now().plusYears(Constants.FREE_TIME_INTERVAL).format(Constants.DATE_TIME_FORMAT);
         ResponseEntity<Object> response = statsServerClient.getHitsStatistics(start, end, uris, true);
         System.out.println("Получил в ответ: " + response);
         Map<Integer, Integer> statistic = new HashMap<>();
@@ -215,7 +215,7 @@ public class EventService {
                 "emw-main-service",
                 "/events",
                 servletRequest.getRemoteAddr(),
-                LocalDateTime.now().format(MomentFormatter.DATE_TIME_FORMAT)));
+                LocalDateTime.now().format(Constants.DATE_TIME_FORMAT)));
         Pageable pageable = PageRequest.of(presentationParameters.getFrom() / presentationParameters.getSize(),
                                             presentationParameters.getSize());
         String text = null;
@@ -230,8 +230,8 @@ public class EventService {
         if (searchParametersUsersPublic.getPaid() != null) {
             paid = searchParametersUsersPublic.getPaid();
         }
-        LocalDateTime rangeStart = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL);
-        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL);
+        LocalDateTime rangeStart = LocalDateTime.now().minusYears(Constants.FREE_TIME_INTERVAL);
+        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(Constants.FREE_TIME_INTERVAL);
         if (searchParametersUsersPublic.getRangeStart() == null && searchParametersUsersPublic.getRangeEnd() == null) {
             rangeStart = LocalDateTime.now();
         } else if (searchParametersUsersPublic.getRangeStart() != null && searchParametersUsersPublic.getRangeEnd() == null) {
@@ -288,7 +288,7 @@ public class EventService {
                 "emw-main-service",
                 "/events/" + id,
                 servletRequest.getRemoteAddr(),
-                LocalDateTime.now().format(MomentFormatter.DATE_TIME_FORMAT)));
+                LocalDateTime.now().format(Constants.DATE_TIME_FORMAT)));
         return eventFullDto;
     }
 
@@ -326,8 +326,8 @@ public class EventService {
         if (searchParametersAdmin.getCategories() != null) {
             categories = searchParametersAdmin.getCategories();
         }
-        LocalDateTime rangeStart = LocalDateTime.now().minusYears(MomentFormatter.FREE_TIME_INTERVAL);
-        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(MomentFormatter.FREE_TIME_INTERVAL);
+        LocalDateTime rangeStart = LocalDateTime.now().minusYears(Constants.FREE_TIME_INTERVAL);
+        LocalDateTime rangeEnd = LocalDateTime.now().plusYears(Constants.FREE_TIME_INTERVAL);
         if (searchParametersAdmin.getRangeStart() == null && searchParametersAdmin.getRangeEnd() == null) {
             rangeStart = LocalDateTime.now();
         } else if (searchParametersAdmin.getRangeStart() != null && searchParametersAdmin.getRangeEnd() == null) {

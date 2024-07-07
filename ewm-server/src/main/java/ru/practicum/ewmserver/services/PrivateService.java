@@ -10,7 +10,7 @@ import ru.practicum.ewmserver.dto.event.EventShotDtoWithRating;
 import ru.practicum.ewmserver.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.ewmserver.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.ewmserver.dto.event.EventShortDto;
-import ru.practicum.ewmserver.dto.MomentFormatter;
+import ru.practicum.ewmserver.dto.Constants;
 import ru.practicum.ewmserver.dto.event.NewEventDto;
 import ru.practicum.ewmserver.dto.request.ParticipationRequestDto;
 import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
@@ -58,7 +58,7 @@ public class PrivateService {
 
     @Transactional
     public EventFullDto saveEvent(int userId, NewEventDto newEventDto) {
-        if (LocalDateTime.parse(newEventDto.getEventDate(), MomentFormatter.DATE_TIME_FORMAT)
+        if (LocalDateTime.parse(newEventDto.getEventDate(), Constants.DATE_TIME_FORMAT)
                 .isBefore(LocalDateTime.now().plusHours(2))) {
             throw new BadRequestValidationException("Дата события не может быть раньше, чем через два часа от текущего момента");
         }
@@ -190,11 +190,11 @@ public class PrivateService {
             User initiator = userService.getUser(event.getInitiator().getId());
             if (!mark.getScore().toString().equals(score.toString())) {
                 if (mark.getScore()) {
-                    event.setRating(event.getRating() - 2);
-                    initiator.setRating(initiator.getRating() - 2);
+                    event.setRating(event.getRating() - Constants.CHANGING_RATING_WHEN_CHANGING_MARK);
+                    initiator.setRating(initiator.getRating() - Constants.CHANGING_RATING_WHEN_CHANGING_MARK);
                 } else {
-                    event.setRating(event.getRating() + 2);
-                    initiator.setRating(initiator.getRating() + 2);
+                    event.setRating(event.getRating() + Constants.CHANGING_RATING_WHEN_CHANGING_MARK);
+                    initiator.setRating(initiator.getRating() + Constants.CHANGING_RATING_WHEN_CHANGING_MARK);
                 }
                 mark.setScore(score);
                 eventService.save(event);
@@ -213,11 +213,11 @@ public class PrivateService {
                 markService.saveMark(mark);
                 User initiator = userService.getUser(event.getInitiator().getId());
                 if (score) {
-                    event.setRating(event.getRating() + 1);
-                    initiator.setRating(initiator.getRating() + 1);
+                    event.setRating(event.getRating() + Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
+                    initiator.setRating(initiator.getRating() + Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
                 } else {
-                    event.setRating(event.getRating() - 1);
-                    initiator.setRating(initiator.getRating() - 1);
+                    event.setRating(event.getRating() - Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
+                    initiator.setRating(initiator.getRating() - Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
                 }
                 eventService.save(event);
                 markService.saveMark(mark);
@@ -235,11 +235,11 @@ public class PrivateService {
             Event event = eventService.getEvent(eventId);
             User initiator = userService.getUser(event.getInitiator().getId());
             if (mark.getScore()) {
-                event.setRating(event.getRating() - 1);
-                initiator.setRating(initiator.getRating() - 1);
+                event.setRating(event.getRating() - Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
+                initiator.setRating(initiator.getRating() - Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
             } else {
-                event.setRating(event.getRating() + 1);
-                initiator.setRating(initiator.getRating() + 1);
+                event.setRating(event.getRating() + Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
+                initiator.setRating(initiator.getRating() + Constants.RATING_CHANGE_AT_NEW_MARK_OR_DELETE_MARK);
             }
             eventService.save(event);
             userService.saveUser(initiator);

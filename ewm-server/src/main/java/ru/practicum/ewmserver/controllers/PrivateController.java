@@ -117,6 +117,7 @@ public class PrivateController {
     /** Feature: Лайки и рейтинги */
 
     @PutMapping("/events/{eventId}/likes")
+    @ResponseStatus(HttpStatus.CREATED)
     public void putMark(@PathVariable @Positive Integer userId,
                         @PathVariable @Positive Integer eventId,
                         @RequestParam @NotNull Boolean score) {
@@ -125,6 +126,7 @@ public class PrivateController {
     }
 
     @DeleteMapping("/events/{eventId}/likes")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMark(@PathVariable @Positive Integer userId,
                            @PathVariable @Positive Integer eventId) {
         log.info("Запрос от private контроллера от пользователя с id={} на удаление реакции по событию с id={}", userId, eventId);

@@ -11,8 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.event.EventFullDtoWithRating;
 import ru.practicum.ewmserver.dto.event.EventShortDto;
 import ru.practicum.ewmserver.dto.MomentFormatter;
+import ru.practicum.ewmserver.dto.event.EventShotDtoWithRating;
 import ru.practicum.ewmserver.dto.event.NewEventDto;
 import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
 import ru.practicum.ewmserver.enums.AdminStateAction;
@@ -351,5 +353,45 @@ public class EventService {
     @Transactional(readOnly = true)
     public Event getEvent(int eventId) {
         return eventRepository.getReferenceById(eventId);
+    }
+
+    @Transactional(readOnly = true)
+    public EventFullDtoWithRating getEventOfUserWithRating(int userId, int eventId) {
+        Event event = getEvent(eventId);
+        if (event.getInitiator().getId() != userId) {
+            throw new ConflictValidationException("Нельзя просматривать чужие события");
+        }
+        List<String> urisInList = new ArrayList<>();
+        urisInList.add("/events/" + eventId);
+        String[] uris = urisInList.toArray(new String[0]);
+        Map<Integer, Integer> statistic = getHitsStatistic(uris);
+        EventFullDtoWithRating eventFullDtoWithRating = EventMapper.toEventFullDtoWithRating(event);
+        if (statistic.get(eventFullDtoWithRating.getId()) != null) {
+            eventFullDtoWithRating.setViews(statistic.get(eventFullDtoWithRating.getId()));
+        }
+        return eventFullDtoWithRating;
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventShotDtoWithRating> getEventsWithRating(int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
+        Page<Event> events;
+        events = eventRepository.findAllWhereRatingIsGreaterThanZeroSortByRatingDesc(pageable);
+        List<EventShotDtoWithRating> shortEventsDtoWithRating = events
+                .stream()
+                .map(EventMapper::toEventShortDtoWithRating)
+                .collect(Collectors.toList());
+        List<String> urisInList = new ArrayList<>();
+        for (EventShotDtoWithRating event : shortEventsDtoWithRating) {
+            urisInList.add("/events/" + event.getId());
+        }
+        String[] uris = urisInList.toArray(new String[0]);
+        Map<Integer, Integer> statistic = getHitsStatistic(uris);
+        for (EventShotDtoWithRating eventShotDtoWithRating : shortEventsDtoWithRating) {
+            if (statistic.get(eventShotDtoWithRating.getId()) != null) {
+                eventShotDtoWithRating.setViews(statistic.get(eventShotDtoWithRating.getId()));
+            }
+        }
+        return shortEventsDtoWithRating;
     }
 }

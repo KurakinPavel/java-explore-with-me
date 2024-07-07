@@ -31,6 +31,10 @@ public class UserService {
         return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
     }
 
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
     @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Integer> ids, int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);

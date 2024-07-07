@@ -13,4 +13,3 @@ public class StatsServerClientConfiguration {
         return new StatsServerClient(statisticServerUrl, builder);
     }
 }
-

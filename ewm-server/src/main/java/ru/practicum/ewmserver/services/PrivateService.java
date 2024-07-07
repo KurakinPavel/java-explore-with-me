@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.event.EventFullDtoWithRating;
+import ru.practicum.ewmserver.dto.event.EventShotDtoWithRating;
 import ru.practicum.ewmserver.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.ewmserver.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.ewmserver.dto.event.EventShortDto;
@@ -20,10 +22,12 @@ import ru.practicum.ewmserver.mappers.ParticipationRequestMapper;
 import ru.practicum.ewmserver.mappers.UserMapper;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.model.Event;
+import ru.practicum.ewmserver.model.Mark;
 import ru.practicum.ewmserver.model.ParticipationRequest;
 import ru.practicum.ewmserver.model.User;
 import ru.practicum.ewmserver.services.entityservices.CategoryService;
 import ru.practicum.ewmserver.services.entityservices.EventService;
+import ru.practicum.ewmserver.services.entityservices.MarkService;
 import ru.practicum.ewmserver.services.entityservices.ParticipationRequestService;
 import ru.practicum.ewmserver.services.entityservices.UserService;
 
@@ -40,8 +44,11 @@ public class PrivateService {
     private final UserService userService;
     private final CategoryService categoryService;
     private final ParticipationRequestService participationRequestService;
+    private final MarkService markService;
 
-    /** События */
+    /**
+     * События
+     */
 
     @Transactional(readOnly = true)
     public List<EventShortDto> getUserEvents(int userId, int from, int size) {
@@ -130,7 +137,9 @@ public class PrivateService {
         return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
     }
 
-    /** Запросы на участие */
+    /**
+     * Запросы на участие
+     */
 
     @Transactional(readOnly = true)
     public List<ParticipationRequestDto> getUserRequests(int userId) {
@@ -167,5 +176,88 @@ public class PrivateService {
     @Transactional
     public ParticipationRequestDto cancelParticipationRequest(int userId, int requestId) {
         return participationRequestService.cancel(userId, requestId);
+    }
+
+    /**
+     * Feature: Лайки и рейтинги
+     */
+
+    @Transactional
+    public void putMark(int userId, int eventId, Boolean score) {
+        Mark mark = markService.findMarkByEvaluatorAndEvent(userId, eventId);
+        if (mark != null) {
+            Event event = eventService.getEvent(eventId);
+            User initiator = userService.getUser(event.getInitiator().getId());
+            if (!mark.getScore().toString().equals(score.toString())) {
+                if (mark.getScore()) {
+                    event.setRating(event.getRating() - 2);
+                    initiator.setRating(initiator.getRating() - 2);
+                } else {
+                    event.setRating(event.getRating() + 2);
+                    initiator.setRating(initiator.getRating() + 2);
+                }
+                mark.setScore(score);
+                eventService.save(event);
+                markService.saveMark(mark);
+                userService.saveUser(initiator);
+            }
+        } else {
+            ParticipationRequest request = participationRequestService.getRequestByEventAndRequester(eventId, userId);
+            if (request == null) {
+                throw new BadRequestValidationException("Оценивать событие могут только его участники");
+            }
+            Event event = eventService.getEvent(eventId);
+            if (event.getParticipantLimit() == 0 || !event.getRequestModeration() || request.getStatus().equals(ParticipationRequestStatus.CONFIRMED)) {
+                User evaluator = userService.getUser(userId);
+                mark = new Mark(0, evaluator, event, score);
+                markService.saveMark(mark);
+                User initiator = userService.getUser(event.getInitiator().getId());
+                if (score) {
+                    event.setRating(event.getRating() + 1);
+                    initiator.setRating(initiator.getRating() + 1);
+                } else {
+                    event.setRating(event.getRating() - 1);
+                    initiator.setRating(initiator.getRating() - 1);
+                }
+                eventService.save(event);
+                markService.saveMark(mark);
+                userService.saveUser(initiator);
+            } else {
+                throw new BadRequestValidationException("Оценивать событие могут только его участники");
+            }
+        }
+    }
+
+    @Transactional
+    public void deleteMark(int userId, int eventId) {
+        Mark mark = markService.findMarkByEvaluatorAndEvent(userId, eventId);
+        if (mark != null) {
+            Event event = eventService.getEvent(eventId);
+            User initiator = userService.getUser(event.getInitiator().getId());
+            if (mark.getScore()) {
+                event.setRating(event.getRating() - 1);
+                initiator.setRating(initiator.getRating() - 1);
+            } else {
+                event.setRating(event.getRating() + 1);
+                initiator.setRating(initiator.getRating() + 1);
+            }
+            eventService.save(event);
+            userService.saveUser(initiator);
+            markService.deleteMark(mark);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public EventFullDtoWithRating getUserEventWithRating(int userId, int eventId) {
+        User user = userService.getUser(userId);
+        UserMapper.toUserDto(user);
+        return eventService.getEventOfUserWithRating(userId, eventId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventShotDtoWithRating> getEventsWithRating(int userId, int from, int size) {
+        User user = userService.getUser(userId);
+        UserMapper.toUserDto(user);
+        return eventService.getEventsWithRating(from, size);
     }
 }

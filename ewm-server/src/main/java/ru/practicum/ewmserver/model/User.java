@@ -27,4 +27,6 @@ public class User {
     protected String name;
     @Column(nullable = false)
     protected String email;
+    @Column(nullable = false)
+    protected int rating;
 }

@@ -42,4 +42,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
                                          @Param("categories") List<Integer> categories,
                                          @Param("start") LocalDateTime rangeStart,
                                          @Param("end") LocalDateTime rangeEnd, Pageable pageable);
+
+    @Query("SELECT e FROM Event AS e " +
+            "WHERE e.rating <> 0 " +
+            "ORDER BY e.rating DESC")
+    Page<Event> findAllWhereRatingIsGreaterThanZeroSortByRatingDesc(Pageable pageable);
 }

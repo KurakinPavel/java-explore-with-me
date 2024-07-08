@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmserver.dto.user.UserDto;
+import ru.practicum.ewmserver.dto.user.UserDtoWithRating;
 import ru.practicum.ewmserver.exceptions.custom.BadRequestValidationException;
 import ru.practicum.ewmserver.mappers.UserMapper;
 import ru.practicum.ewmserver.model.User;
@@ -55,5 +56,15 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getUser(int userId) {
         return userRepository.getReferenceById(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDtoWithRating> getUsersWithRating(int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
+        Page<User> users;
+        users = userRepository.findAllWhereRatingNotEqualToZeroSortByRating(pageable);
+        return users.stream()
+                .map(UserMapper::toUserDtoWithRating)
+                .collect(Collectors.toList());
     }
 }

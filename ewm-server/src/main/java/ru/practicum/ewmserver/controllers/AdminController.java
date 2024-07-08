@@ -20,6 +20,7 @@ import ru.practicum.ewmserver.dto.event.EventFullDto;
 import ru.practicum.ewmserver.dto.compilation.NewCompilationDto;
 import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
 import ru.practicum.ewmserver.dto.user.UserDto;
+import ru.practicum.ewmserver.dto.user.UserDtoWithRating;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.searchparams.PresentationParameters;
 import ru.practicum.ewmserver.searchparams.SearchParametersAdmin;
@@ -131,5 +132,15 @@ public class AdminController {
                                             @RequestBody @Valid NewCompilationDto newCompilationDto) {
         log.info("Контроллер админа получил запрос на обновление подборки событий");
         return adminService.updateCompilation(compId, newCompilationDto);
+    }
+
+    /** Feature: Лайки и рейтинги */
+
+    @GetMapping("/users/rating")
+    public List<UserDtoWithRating> getUsersWithRating(@RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                      @RequestParam(defaultValue = "10") @Positive Integer size) {
+        log.info("Контроллер админа получил запрос на получение списка пользователей с информацией " +
+                "об их рейтинге и сортировкой по возрастанию рейтинга");
+        return adminService.getUsersWithRating(from, size);
     }
 }

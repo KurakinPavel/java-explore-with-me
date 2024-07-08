@@ -3,7 +3,6 @@ package ru.practicum.ewmserver.controllers;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -133,7 +132,7 @@ public class PrivateController {
         privateService.deleteMark(userId, eventId);
     }
 
-    @GetMapping("/events/{eventId}/likes")
+    @GetMapping("/events/{eventId}/rating")
     public EventFullDtoWithRating getUserEventWithRating(@PathVariable @Positive Integer userId,
                                                      @PathVariable @Positive Integer eventId) {
         log.info("Запрос от private контроллера от пользователя с id={} на получение подробной информации о событии " +
@@ -141,7 +140,7 @@ public class PrivateController {
         return privateService.getUserEventWithRating(userId, eventId);
     }
 
-    @GetMapping("/events/likes")
+    @GetMapping("/events/rating")
     public List<EventShotDtoWithRating> getEventsWithRating(@PathVariable @Positive Integer userId,
                                                       @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
                                                       @RequestParam(defaultValue = "10") @Positive Integer size) {

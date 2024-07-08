@@ -1,6 +1,7 @@
 package ru.practicum.ewmserver.mappers;
 
 import ru.practicum.ewmserver.dto.user.UserDto;
+import ru.practicum.ewmserver.dto.user.UserDtoWithRating;
 import ru.practicum.ewmserver.dto.user.UserShortDto;
 import ru.practicum.ewmserver.dto.user.UserShotDtoWithRating;
 import ru.practicum.ewmserver.model.User;
@@ -12,6 +13,15 @@ public class UserMapper {
                 user.getId(),
                 user.getName(),
                 user.getEmail()
+        );
+    }
+
+    public static UserDtoWithRating toUserDtoWithRating(User user) {
+        return new UserDtoWithRating(
+                user.getId(),
+                user.getName(),
+                user.getName(),
+                user.getRating()
         );
     }
 

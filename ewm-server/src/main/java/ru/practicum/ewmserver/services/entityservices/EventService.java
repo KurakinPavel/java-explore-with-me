@@ -376,7 +376,7 @@ public class EventService {
     public List<EventShotDtoWithRating> getEventsWithRating(int from, int size) {
         Pageable pageable = PageRequest.of(from / size, size);
         Page<Event> events;
-        events = eventRepository.findAllWhereRatingIsGreaterThanZeroSortByRatingDesc(pageable);
+        events = eventRepository.findAllWhereRatingNotEqualToZeroSortByRatingDesc(pageable);
         List<EventShotDtoWithRating> shortEventsDtoWithRating = events
                 .stream()
                 .map(EventMapper::toEventShortDtoWithRating)

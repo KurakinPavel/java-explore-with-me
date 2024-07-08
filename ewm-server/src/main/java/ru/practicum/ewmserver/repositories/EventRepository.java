@@ -46,5 +46,5 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     @Query("SELECT e FROM Event AS e " +
             "WHERE e.rating <> 0 " +
             "ORDER BY e.rating DESC")
-    Page<Event> findAllWhereRatingIsGreaterThanZeroSortByRatingDesc(Pageable pageable);
+    Page<Event> findAllWhereRatingNotEqualToZeroSortByRatingDesc(Pageable pageable);
 }

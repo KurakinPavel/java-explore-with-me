@@ -16,4 +16,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u FROM User AS u " +
             "WHERE (u.id IN :ids OR :ids IS NULL)")
     Page<User> findUsersForAdmin(@Param("ids") List<Integer> ids, Pageable pageable);
+
+    @Query("SELECT u FROM User AS u " +
+            "WHERE u.rating <> 0 " +
+            "ORDER BY u.rating")
+    Page<User> findAllWhereRatingNotEqualToZeroSortByRating(Pageable pageable);
 }

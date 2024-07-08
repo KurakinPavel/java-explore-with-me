@@ -11,6 +11,7 @@ import ru.practicum.ewmserver.dto.event.EventFullDto;
 import ru.practicum.ewmserver.dto.compilation.NewCompilationDto;
 import ru.practicum.ewmserver.dto.event.UpdateEventRequest;
 import ru.practicum.ewmserver.dto.user.UserDto;
+import ru.practicum.ewmserver.dto.user.UserDtoWithRating;
 import ru.practicum.ewmserver.mappers.CompilationMapper;
 import ru.practicum.ewmserver.model.Category;
 import ru.practicum.ewmserver.model.Compilation;
@@ -122,5 +123,12 @@ public class AdminService {
             updatingCompilation.setEvents(eventsForCompilation);
         }
         return CompilationMapper.toCompilationDto(compilationService.saveCompilation(updatingCompilation));
+    }
+
+    /** Feature: Лайки и рейтинги */
+
+    @Transactional(readOnly = true)
+    public List<UserDtoWithRating> getUsersWithRating(int from, int size) {
+        return userService.getUsersWithRating(from, size);
     }
 }

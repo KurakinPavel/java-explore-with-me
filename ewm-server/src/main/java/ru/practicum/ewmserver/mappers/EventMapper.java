@@ -1,8 +1,10 @@
 package ru.practicum.ewmserver.mappers;
 
 import ru.practicum.ewmserver.dto.event.EventFullDto;
+import ru.practicum.ewmserver.dto.event.EventFullDtoWithRating;
 import ru.practicum.ewmserver.dto.event.EventShortDto;
-import ru.practicum.ewmserver.dto.MomentFormatter;
+import ru.practicum.ewmserver.dto.Constants;
+import ru.practicum.ewmserver.dto.event.EventShotDtoWithRating;
 import ru.practicum.ewmserver.dto.event.NewEventDto;
 import ru.practicum.ewmserver.enums.EventState;
 import ru.practicum.ewmserver.model.Category;
@@ -21,7 +23,7 @@ public class EventMapper {
                 category,
                 LocalDateTime.now(),
                 newEventDto.getDescription() != null ? newEventDto.getDescription() : "",
-                newEventDto.getEventDate() != null ? LocalDateTime.parse(newEventDto.getEventDate(), MomentFormatter.DATE_TIME_FORMAT) : null,
+                newEventDto.getEventDate() != null ? LocalDateTime.parse(newEventDto.getEventDate(), Constants.DATE_TIME_FORMAT) : null,
                 initiator,
                 location,
                 newEventDto.getPaid() != null ? newEventDto.getPaid() : false,
@@ -30,7 +32,8 @@ public class EventMapper {
                 LocalDateTime.now(),
                 newEventDto.getRequestModeration() != null ? newEventDto.getRequestModeration() : true,
                 EventState.PENDING,
-                newEventDto.getTitle() != null ? newEventDto.getTitle() : ""
+                newEventDto.getTitle() != null ? newEventDto.getTitle() : "",
+                0
         );
     }
 
@@ -40,14 +43,14 @@ public class EventMapper {
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
                 event.getConfirmedRequests(),
-                event.getCreatedOn().format(MomentFormatter.DATE_TIME_FORMAT),
+                event.getCreatedOn().format(Constants.DATE_TIME_FORMAT),
                 event.getDescription(),
-                event.getEventDate().format(MomentFormatter.DATE_TIME_FORMAT),
+                event.getEventDate().format(Constants.DATE_TIME_FORMAT),
                 UserMapper.toUserShortDto(event.getInitiator()),
                 LocationMapper.toLocationDto(event.getLocation()),
                 event.getPaid(),
                 event.getParticipantLimit(),
-                event.getPublishedOn().format(MomentFormatter.DATE_TIME_FORMAT),
+                event.getPublishedOn().format(Constants.DATE_TIME_FORMAT),
                 event.getRequestModeration(),
                 event.getState().toString(),
                 event.getTitle(),
@@ -75,11 +78,48 @@ public class EventMapper {
                 event.getAnnotation(),
                 CategoryMapper.toCategoryDto(event.getCategory()),
                 event.getConfirmedRequests(),
-                event.getEventDate().format(MomentFormatter.DATE_TIME_FORMAT),
+                event.getEventDate().format(Constants.DATE_TIME_FORMAT),
                 UserMapper.toUserShortDto(event.getInitiator()),
                 event.getPaid(),
                 event.getTitle(),
                 0
+        );
+    }
+
+    public static EventFullDtoWithRating toEventFullDtoWithRating(Event event) {
+        return new EventFullDtoWithRating(
+                event.getId(),
+                event.getAnnotation(),
+                CategoryMapper.toCategoryDto(event.getCategory()),
+                event.getConfirmedRequests(),
+                event.getCreatedOn().format(Constants.DATE_TIME_FORMAT),
+                event.getDescription(),
+                event.getEventDate().format(Constants.DATE_TIME_FORMAT),
+                UserMapper.toUserShortDtoWithRating(event.getInitiator()),
+                LocationMapper.toLocationDto(event.getLocation()),
+                event.getPaid(),
+                event.getParticipantLimit(),
+                event.getPublishedOn().format(Constants.DATE_TIME_FORMAT),
+                event.getRequestModeration(),
+                event.getState().toString(),
+                event.getTitle(),
+                0,
+                event.getRating()
+        );
+    }
+
+    public static EventShotDtoWithRating toEventShortDtoWithRating(Event event) {
+        return new EventShotDtoWithRating(
+                event.getId(),
+                event.getAnnotation(),
+                CategoryMapper.toCategoryDto(event.getCategory()),
+                event.getConfirmedRequests(),
+                event.getEventDate().format(Constants.DATE_TIME_FORMAT),
+                UserMapper.toUserShortDtoWithRating(event.getInitiator()),
+                event.getPaid(),
+                event.getTitle(),
+                0,
+                event.getRating()
         );
     }
 }

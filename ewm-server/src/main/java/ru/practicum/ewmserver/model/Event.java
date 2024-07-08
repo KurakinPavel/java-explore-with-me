@@ -68,4 +68,6 @@ public class Event {
     protected EventState state;
     @Column(nullable = false)
     protected String title;
+    @Column(nullable = false)
+    protected int rating;
 }
